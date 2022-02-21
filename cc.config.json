@@ -21,6 +21,11 @@
         "profiler": { "modules": [ "profiler" ] },
         "audio": { "modules": [ "audio" ] },
         "video": { "modules": [ "video" ] },
+        "xr": {
+            "modules": [
+                "xr"
+            ]
+        },
         "terrain": { "modules": [ "terrain" ] },
         "webview": { "modules": [ "webview" ] },
         "tween": { "modules": [ "tween" ] },
