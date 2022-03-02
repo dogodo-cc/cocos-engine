@@ -28,7 +28,7 @@
  * @hidden
  */
 
+export * from './pose-tracker';
+export * from './mr-sight';
 export * from './hmd-ctrl';
-export * from './xr-camera-component';
-export * from './xr-left-camera-component';
-export * from './xr-right-camera-component';
+export * from './xr-camera';
