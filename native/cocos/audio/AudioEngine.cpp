@@ -68,10 +68,10 @@ AudioEngine::ProfileHelper *                                AudioEngine::sDefaul
 std::unordered_map<int, AudioEngine::AudioInfo>             AudioEngine::sAudioIDInfoMap;
 AudioEngineImpl *                                           AudioEngine::sAudioEngineImpl = nullptr;
 
-float            AudioEngine::sVolumeFactor = 1.0F;
-uint32_t         AudioEngine::sOnPauseListenerID  = 0;
-uint32_t         AudioEngine::sOnResumeListenerID = 0;
-std::vector<int> AudioEngine::sBreakAudioID;
+float              AudioEngine::sVolumeFactor       = 1.0F;
+uint32_t           AudioEngine::sOnPauseListenerID  = 0;
+uint32_t           AudioEngine::sOnResumeListenerID = 0;
+ccstd::vector<int> AudioEngine::sBreakAudioID;
 
 AudioEngine::AudioEngineThreadPool *AudioEngine::sThreadPool = nullptr;
 bool                                AudioEngine::sIsEnabled  = true;
@@ -135,7 +135,7 @@ private:
         }
     }
 
-    std::vector<std::thread>          _workers;
+    ccstd::vector<std::thread>        _workers;
     std::queue<std::function<void()>> _taskQueue;
 
     std::mutex              _queueMutex;

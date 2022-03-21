@@ -274,11 +274,11 @@ void Mesh::initialize() {
             return;
         }
 
-        auto &                                      buffer        = _data;
-        gfx::Device *                               gfxDevice     = gfx::Device::getInstance();
-        auto                                        vertexBuffers = createVertexBuffers(gfxDevice, buffer.buffer());
-        gfx::BufferList                             indexBuffers;
-        std::vector<IntrusivePtr<RenderingSubMesh>> subMeshes;
+        auto &                                        buffer        = _data;
+        gfx::Device *                                 gfxDevice     = gfx::Device::getInstance();
+        auto                                          vertexBuffers = createVertexBuffers(gfxDevice, buffer.buffer());
+        gfx::BufferList                               indexBuffers;
+        ccstd::vector<IntrusivePtr<RenderingSubMesh>> subMeshes;
 
         for (size_t i = 0; i < _struct.primitives.size(); i++) {
             auto &prim = _struct.primitives[i];
@@ -379,10 +379,10 @@ Mesh::BoneSpaceBounds Mesh::getBoneSpaceBounds(Skeleton *skeleton) {
     if (iter != _boneSpaceBounds.end()) {
         return iter->second;
     }
-    Vec3              v32;
-    BoneSpaceBounds & bounds = _boneSpaceBounds[skeleton->getHash()];
-    std::vector<bool> valid;
-    const auto &      bindposes = skeleton->getBindposes();
+    Vec3                v32;
+    BoneSpaceBounds &   bounds = _boneSpaceBounds[skeleton->getHash()];
+    ccstd::vector<bool> valid;
+    const auto &        bindposes = skeleton->getBindposes();
     valid.reserve(bindposes.size());
     for (size_t i = 0; i < bindposes.size(); i++) {
         bounds.emplace_back(new geometry::AABB{
@@ -528,7 +528,7 @@ bool Mesh::merge(Mesh *mesh, const Mat4 *worldMatrix /* = nullptr */, bool valid
 
     bool hasAttr = false;
 
-    std::vector<Mesh::IVertexBundle> vertexBundles;
+    ccstd::vector<Mesh::IVertexBundle> vertexBundles;
     vertexBundles.resize(_struct.vertexBundles.size());
 
     for (size_t i = 0; i < _struct.vertexBundles.size(); ++i) {
@@ -604,7 +604,7 @@ bool Mesh::merge(Mesh *mesh, const Mat4 *worldMatrix /* = nullptr */, bool valid
     uint32_t idxStride      = 2;
     uint32_t vertBatchCount = 0;
 
-    std::vector<Mesh::ISubMesh> primitives;
+    ccstd::vector<Mesh::ISubMesh> primitives;
     primitives.resize(_struct.primitives.size());
 
     for (size_t i = 0; i < _struct.primitives.size(); ++i) {
@@ -937,7 +937,7 @@ void Mesh::updateSubMesh(index_t primitiveIndex, const IDynamicGeometry &geometr
         return;
     }
 
-    std::vector<const Float32Array *> buffers;
+    ccstd::vector<const Float32Array *> buffers;
     if (!geometry.positions.empty()) {
         buffers.push_back(&geometry.positions);
     }

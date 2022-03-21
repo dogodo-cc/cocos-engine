@@ -126,11 +126,11 @@ struct CCWGPUDrawIndirectObject {
 static_assert(sizeof(CCWGPUDrawIndirectObject) == 16, "WGPU drawIndirect structure validation failed!");
 
 struct CCWGPUBufferObject {
-    WGPUBuffer                                   wgpuBuffer = wgpuDefaultHandle;
-    std::vector<CCWGPUDrawIndexedIndirectObject> indexedIndirectObjs;
-    std::vector<CCWGPUDrawIndirectObject>        indirectObjs;
-    bool                                         mapped            = false;
-    bool                                         hasDynamicOffsets = false;
+    WGPUBuffer                                     wgpuBuffer = wgpuDefaultHandle;
+    ccstd::vector<CCWGPUDrawIndexedIndirectObject> indexedIndirectObjs;
+    ccstd::vector<CCWGPUDrawIndirectObject>        indirectObjs;
+    bool                                           mapped            = false;
+    bool                                           hasDynamicOffsets = false;
 };
 
 struct CCWGPUSamplerObject {
@@ -149,14 +149,14 @@ struct CCWGPUSamplerObject {
 };
 
 struct CCWGPUBindGroupLayoutObject {
-    WGPUBindGroupLayout                   bindGroupLayout = wgpuDefaultHandle;
-    std::vector<WGPUBindGroupLayoutEntry> bindGroupLayoutEntries;
+    WGPUBindGroupLayout                     bindGroupLayout = wgpuDefaultHandle;
+    ccstd::vector<WGPUBindGroupLayoutEntry> bindGroupLayoutEntries;
 };
 
 struct CCWGPUBindGroupObject {
-    WGPUBindGroup                   bindgroup = wgpuDefaultHandle;
-    std::vector<WGPUBindGroupEntry> bindGroupEntries;
-    std::set<uint8_t>               bindingSet;
+    WGPUBindGroup                     bindgroup = wgpuDefaultHandle;
+    ccstd::vector<WGPUBindGroupEntry> bindGroupEntries;
+    std::set<uint8_t>                 bindingSet;
 };
 
 struct CCWGPUPipelineLayoutObject {
@@ -167,8 +167,8 @@ struct CCWGPUPipelineStateObject {
     WGPURenderPipeline  wgpuRenderPipeline  = wgpuDefaultHandle;
     WGPUComputePipeline wgpuComputePipeline = wgpuDefaultHandle;
 
-    std::vector<WGPUVertexAttribute> redundantAttr;
-    uint32_t                         maxAttrLength = 0;
+    ccstd::vector<WGPUVertexAttribute> redundantAttr;
+    uint32_t                           maxAttrLength = 0;
 };
 
 struct CCWGPUShaderObject {
@@ -217,7 +217,7 @@ struct CCWGPUStateCache {
     uint32_t minAttachmentWidth  = 0;
     uint32_t minAttachmentHeight = 0;
 
-    std::vector<CCWGPUDescriptorSetObject>    descriptorSets;
+    ccstd::vector<CCWGPUDescriptorSetObject>  descriptorSets;
     std::map<StencilFace, CCWGPUStencilMasks> stencilMasks;
 };
 
@@ -237,9 +237,9 @@ struct CCWGPUCommandBufferObject {
 };
 
 struct CCWGPUQueryPoolObject {
-    QueryType             type            = QueryType::OCCLUSION;
-    uint32_t              maxQueryObjects = 0;
-    std::vector<uint32_t> idPool;
+    QueryType               type            = QueryType::OCCLUSION;
+    uint32_t                maxQueryObjects = 0;
+    ccstd::vector<uint32_t> idPool;
 };
 
 } // namespace gfx

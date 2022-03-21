@@ -130,8 +130,8 @@ bool GLES2GPUContext::initialize(GLES2GPUStateCache *stateCache, GLES2GPUConstan
         EGL_SAMPLES, sampleSize,
         EGL_NONE};
 
-    int               numConfig{0};
-    vector<EGLConfig> eglConfigs;
+    int                      numConfig{0};
+    ccstd::vector<EGLConfig> eglConfigs;
 
     EGL_CHECK(success = eglChooseConfig(eglDisplay, defaultAttribs, nullptr, 0, &numConfig));
     if (success) {

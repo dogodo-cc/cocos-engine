@@ -73,12 +73,12 @@ void CCWGPUPipelineState::prepare(const std::set<uint8_t> &setInUse) {
 
         const uint8_t streamCount = (*maxStreamAttr).stream + 1;
 
-        std::vector<WGPUVertexBufferLayout>           vbLayouts(streamCount);
-        std::vector<std::vector<WGPUVertexAttribute>> wgpuAttrsVec(streamCount);
+        ccstd::vector<WGPUVertexBufferLayout>             vbLayouts(streamCount);
+        ccstd::vector<ccstd::vector<WGPUVertexAttribute>> wgpuAttrsVec(streamCount);
 
         const AttributeList &attrs       = _shader->getAttributes();
         uint64_t             offset[256] = {0};
-        // std::vector<WGPUVertexAttribute> wgpuAttrs;
+        // ccstd::vector<WGPUVertexAttribute> wgpuAttrs;
         bool    isInstance = attrs.empty() ? false : attrs[0].isInstanced;
         uint8_t index      = 0;
 
@@ -208,10 +208,10 @@ void CCWGPUPipelineState::prepare(const std::set<uint8_t> &setInUse) {
             .alphaToCoverageEnabled = _blendState.isA2C != 0,
         };
 
-        const ColorAttachmentList &       colors = _renderPass->getColorAttachments();
-        std::vector<WGPUColorTargetState> colorTargetStates(colors.size());
+        const ColorAttachmentList &         colors = _renderPass->getColorAttachments();
+        ccstd::vector<WGPUColorTargetState> colorTargetStates(colors.size());
 
-        std::vector<WGPUBlendState> blendState(colors.size());
+        ccstd::vector<WGPUBlendState> blendState(colors.size());
 
         for (size_t i = 0, targetIndex = 0; i < colors.size(); i++) {
             colorTargetStates[i].format = toWGPUTextureFormat(colors[i].format);
