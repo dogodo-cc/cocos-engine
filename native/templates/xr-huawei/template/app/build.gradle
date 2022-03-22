@@ -71,7 +71,7 @@ android {
             renderscriptDebuggable false
             minifyEnabled true
             shrinkResources true
-            // proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             proguardFiles "${COCOS_ENGINE_PATH}/external/sources/xr/huawei/android/java/proguard-rules.pro"
             if (project.hasProperty("RELEASE_STORE_FILE")) {
                 signingConfig signingConfigs.release
