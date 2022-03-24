@@ -328,7 +328,13 @@ cocos_source_files(
     cocos/base/ThreadPool.h
     cocos/base/TypeDef.h
     cocos/base/Variant.h
+    cocos/base/std/container/deque.h
+    cocos/base/std/container/map.h
+    cocos/base/std/container/queue.h
+    cocos/base/std/container/set.h
+    cocos/base/std/container/unordered_map.h
     cocos/base/std/container/vector.h
+    cocos/base/std/container/unordered_set.h
 )
 
 ############ application
@@ -1182,6 +1188,10 @@ cocos_source_files(
                  cocos/renderer/pipeline/GeometryRenderer.cpp
                  cocos/renderer/pipeline/helper/Utils.h
                  cocos/renderer/pipeline/helper/Utils.cpp
+                 cocos/renderer/pipeline/custom/FrameGraphDispatcher.cpp
+                 cocos/renderer/pipeline/custom/FGDispatcherGraphs.h
+                 cocos/renderer/pipeline/custom/FGDispatcherTypes.cpp
+                 cocos/renderer/pipeline/custom/FGDispatcherTypes.h
                  cocos/renderer/pipeline/custom/LayoutGraphFwd.h
                  cocos/renderer/pipeline/custom/LayoutGraphGraphs.h
                  cocos/renderer/pipeline/custom/LayoutGraphJsb.cpp

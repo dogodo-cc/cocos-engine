@@ -131,10 +131,10 @@ std::shared_ptr<const DownloadTask> Downloader::createDownloadDataTask(const std
     return task;
 }
 
-std::shared_ptr<const DownloadTask> Downloader::createDownloadFileTask(const std::string &                       srcUrl,
-                                                                       const std::string &                       storagePath,
-                                                                       const std::map<std::string, std::string> &header,
-                                                                       const std::string &                       identifier /* = ""*/) {
+std::shared_ptr<const DownloadTask> Downloader::createDownloadFileTask(const std::string &                         srcUrl,
+                                                                       const std::string &                         storagePath,
+                                                                       const ccstd::map<std::string, std::string> &header,
+                                                                       const std::string &                         identifier /* = ""*/) {
     auto *                              iTask = new (std::nothrow) DownloadTask();
     std::shared_ptr<const DownloadTask> task(iTask);
     do {
@@ -157,7 +157,7 @@ std::shared_ptr<const DownloadTask> Downloader::createDownloadFileTask(const std
 std::shared_ptr<const DownloadTask> Downloader::createDownloadFileTask(const std::string &srcUrl,
                                                                        const std::string &storagePath,
                                                                        const std::string &identifier /* = ""*/) {
-    const std::map<std::string, std::string> emptyHeader;
+    const ccstd::map<std::string, std::string> emptyHeader;
     return createDownloadFileTask(srcUrl, storagePath, emptyHeader, identifier);
 }
 

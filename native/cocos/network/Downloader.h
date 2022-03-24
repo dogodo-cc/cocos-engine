@@ -28,10 +28,10 @@
 #pragma once
 
 #include <functional>
-#include <map>
 #include <memory>
 #include <string>
 #include "base/Macros.h"
+#include "base/std/container/map.h"
 #include "base/std/container/vector.h"
 
 namespace cc {
@@ -49,10 +49,10 @@ public:
     const static int ERROR_IMPL_INTERNAL  = -3;
     const static int ERROR_ABORT          = -4;
 
-    std::string                        identifier;
-    std::string                        requestURL;
-    std::string                        storagePath;
-    std::map<std::string, std::string> header;
+    std::string                          identifier;
+    std::string                          requestURL;
+    std::string                          storagePath;
+    ccstd::map<std::string, std::string> header;
 
     DownloadTask();
     virtual ~DownloadTask();
@@ -108,7 +108,7 @@ public:
 
     std::shared_ptr<const DownloadTask> createDownloadFileTask(const std::string &srcUrl, const std::string &storagePath, const std::string &identifier = "");
 
-    std::shared_ptr<const DownloadTask> createDownloadFileTask(const std::string &srcUrl, const std::string &storagePath, const std::map<std::string, std::string> &header, const std::string &identifier = "");
+    std::shared_ptr<const DownloadTask> createDownloadFileTask(const std::string &srcUrl, const std::string &storagePath, const ccstd::map<std::string, std::string> &header, const std::string &identifier = "");
 
     void abort(const DownloadTask &task);
 

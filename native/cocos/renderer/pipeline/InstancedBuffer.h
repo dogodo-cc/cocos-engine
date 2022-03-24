@@ -27,6 +27,7 @@
 
 #include "Define.h"
 #include "base/RefCounted.h"
+#include "base/std/container/map.h"
 #include "scene/Model.h"
 #include "scene/Pass.h"
 
@@ -79,12 +80,12 @@ public:
     inline const DynamicOffsetList &dynamicOffsets() const { return _dynamicOffsets; }
 
 private:
-    static map<scene::Pass *, map<uint, InstancedBuffer *>> buffers;
-    InstancedItemList                                       _instances;
-    const scene::Pass *                                     _pass             = nullptr;
-    bool                                                    _hasPendingModels = false;
-    DynamicOffsetList                                       _dynamicOffsets;
-    gfx::Device *                                           _device = nullptr;
+    static ccstd::map<scene::Pass *, ccstd::map<uint, InstancedBuffer *>> buffers;
+    InstancedItemList                                                     _instances;
+    const scene::Pass *                                                   _pass             = nullptr;
+    bool                                                                  _hasPendingModels = false;
+    DynamicOffsetList                                                     _dynamicOffsets;
+    gfx::Device *                                                         _device = nullptr;
 };
 
 } // namespace pipeline

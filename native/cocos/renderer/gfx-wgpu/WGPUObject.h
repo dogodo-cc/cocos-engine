@@ -28,6 +28,7 @@
 #include <utility>
 #include "WGPUDef.h"
 #include "base/Utils.h"
+#include "base/std/container/vector.h"
 #include "gfx-base/GFXDef.h"
 
 class WGPURenderPassDescriptor;
@@ -156,7 +157,7 @@ struct CCWGPUBindGroupLayoutObject {
 struct CCWGPUBindGroupObject {
     WGPUBindGroup                     bindgroup = wgpuDefaultHandle;
     ccstd::vector<WGPUBindGroupEntry> bindGroupEntries;
-    std::set<uint8_t>                 bindingSet;
+    ccstd::set<uint8_t>               bindingSet;
 };
 
 struct CCWGPUPipelineLayoutObject {
@@ -217,8 +218,8 @@ struct CCWGPUStateCache {
     uint32_t minAttachmentWidth  = 0;
     uint32_t minAttachmentHeight = 0;
 
-    ccstd::vector<CCWGPUDescriptorSetObject>  descriptorSets;
-    std::map<StencilFace, CCWGPUStencilMasks> stencilMasks;
+    ccstd::vector<CCWGPUDescriptorSetObject>    descriptorSets;
+    ccstd::map<StencilFace, CCWGPUStencilMasks> stencilMasks;
 };
 
 struct CCWGPUCommandBufferObject {
@@ -233,7 +234,7 @@ struct CCWGPUCommandBufferObject {
     WGPURenderPassDescriptor renderPassDescriptor;
     CCWGPUStateCache         stateCache;
 
-    std::map<uint32_t, CCWGPUBuffer *> redundantVertexBufferMap;
+    ccstd::map<uint32_t, CCWGPUBuffer *> redundantVertexBufferMap;
 };
 
 struct CCWGPUQueryPoolObject {

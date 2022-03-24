@@ -25,14 +25,13 @@
 ****************************************************************************/
 
 #include "audio/include/AudioEngine.h"
-#include "base/Log.h"
-#include "base/Utils.h"
-#include "platform/FileUtils.h"
-
 #include <condition_variable>
 #include <mutex>
-#include <queue>
 #include <thread>
+#include "base/Log.h"
+#include "base/Utils.h"
+#include "base/std/container/queue.h"
+#include "platform/FileUtils.h"
 
 #if CC_PLATFORM == CC_PLATFORM_ANDROID
     #include "audio/android/AudioEngine-inl.h"
@@ -60,13 +59,13 @@ const int   AudioEngine::INVALID_AUDIO_ID = -1;
 const float AudioEngine::TIME_UNKNOWN     = -1.0F;
 
 //audio file path,audio IDs
-std::unordered_map<std::string, std::list<int>> AudioEngine::sAudioPathIDMap;
+ccstd::unordered_map<std::string, std::list<int>> AudioEngine::sAudioPathIDMap;
 //profileName,ProfileHelper
-std::unordered_map<std::string, AudioEngine::ProfileHelper> AudioEngine::sAudioPathProfileHelperMap;
-unsigned int                                                AudioEngine::sMaxInstances         = MAX_AUDIOINSTANCES;
-AudioEngine::ProfileHelper *                                AudioEngine::sDefaultProfileHelper = nullptr;
-std::unordered_map<int, AudioEngine::AudioInfo>             AudioEngine::sAudioIDInfoMap;
-AudioEngineImpl *                                           AudioEngine::sAudioEngineImpl = nullptr;
+ccstd::unordered_map<std::string, AudioEngine::ProfileHelper> AudioEngine::sAudioPathProfileHelperMap;
+unsigned int                                                  AudioEngine::sMaxInstances         = MAX_AUDIOINSTANCES;
+AudioEngine::ProfileHelper *                                  AudioEngine::sDefaultProfileHelper = nullptr;
+ccstd::unordered_map<int, AudioEngine::AudioInfo>             AudioEngine::sAudioIDInfoMap;
+AudioEngineImpl *                                             AudioEngine::sAudioEngineImpl = nullptr;
 
 float              AudioEngine::sVolumeFactor       = 1.0F;
 uint32_t           AudioEngine::sOnPauseListenerID  = 0;
@@ -135,8 +134,8 @@ private:
         }
     }
 
-    ccstd::vector<std::thread>        _workers;
-    std::queue<std::function<void()>> _taskQueue;
+    ccstd::vector<std::thread>          _workers;
+    ccstd::queue<std::function<void()>> _taskQueue;
 
     std::mutex              _queueMutex;
     std::condition_variable _taskCondition;

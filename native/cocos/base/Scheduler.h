@@ -31,10 +31,10 @@
 
 #include <functional>
 #include <mutex>
-#include <set>
-#include <unordered_map>
 
 #include "base/RefCounted.h"
+#include "base/std/container/set.h"
+#include "base/std/container/unordered_map.h"
 #include "base/std/container/vector.h"
 
 namespace cc {
@@ -250,7 +250,7 @@ public:
             priority is higher than minPriority will be paused.
       @since v2.0.0
       */
-    std::set<void *> pauseAllTargetsWithMinPriority(int minPriority);
+    ccstd::set<void *> pauseAllTargetsWithMinPriority(int minPriority);
 
     /** Calls a function on the cocos2d thread. Useful when you need to call a cocos2d function from another thread.
      This function is thread safe.
@@ -288,9 +288,9 @@ private:
     // update specific
 
     // Used for "selectors with interval"
-    std::unordered_map<void *, HashTimerEntry *> _hashForTimers;
-    struct HashTimerEntry *                      _currentTarget         = nullptr;
-    bool                                         _currentTargetSalvaged = false;
+    ccstd::unordered_map<void *, HashTimerEntry *> _hashForTimers;
+    struct HashTimerEntry *                        _currentTarget         = nullptr;
+    bool                                           _currentTargetSalvaged = false;
     // If true unschedule will not remove anything from a hash. Elements will only be marked for deletion.
     bool _updateHashLocked = false;
 

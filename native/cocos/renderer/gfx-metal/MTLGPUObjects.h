@@ -25,8 +25,6 @@
 
 #pragma once
 
-#import <vector>
-
 #import <Metal/MTLBuffer.h>
 #import <Metal/MTLCommandQueue.h>
 #import <Metal/MTLRenderCommandEncoder.h>
@@ -36,6 +34,8 @@
 #import "MTLConfig.h"
 #import "MTLDevice.h"
 #import "MTLUtils.h"
+#include "base/std/container/queue.h"
+
 namespace cc {
 namespace gfx {
 class CCMTLBuffer;
@@ -97,8 +97,8 @@ struct CCMTLGPUSubpassAttachment {
 };
 
 struct CCMTLGPUShader {
-    unordered_map<uint, CCMTLGPUUniformBlock> blocks;
-    unordered_map<uint, CCMTLGPUSamplerBlock> samplers;
+    ccstd::unordered_map<uint, CCMTLGPUUniformBlock> blocks;
+    ccstd::unordered_map<uint, CCMTLGPUSamplerBlock> samplers;
 
     ccstd::vector<CCMTLGPUSubpassAttachment> inputs;
     ccstd::vector<CCMTLGPUSubpassAttachment> outputs;
@@ -326,7 +326,7 @@ public:
 protected:
     //avoid cross-reference with CCMTLDevice
     std::function<uint8_t(void)> _getFrameIndex;
-    std::queue<GCFunc>           _releaseQueue[MAX_FRAMES_IN_FLIGHT];
+    ccstd::queue<GCFunc>         _releaseQueue[MAX_FRAMES_IN_FLIGHT];
 };
 
 struct CCMTLGPUSwapChainObject {

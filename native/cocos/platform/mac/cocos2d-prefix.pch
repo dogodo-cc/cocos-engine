@@ -21,13 +21,11 @@
 
 #ifdef __cplusplus
     #include <string>
-    #include <map>
-    #include <list>
     #include <memory>
     #include <functional>
     #include <thread>
     #include <mutex>
-    #include <unordered_map>
+    #include "base/std/container/unordered_map.h"
     #include <list>
     #include <algorithm>
     #include <cstdint>

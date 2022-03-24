@@ -9901,7 +9901,7 @@ static bool js_scene_Root_getPipeline(se::State& s) // NOLINT(readability-identi
     SE_REPORT_ERROR("wrong number of arguments: %d, was expecting %d", (int)argc, 0);
     return false;
 }
-SE_BIND_FUNC(js_scene_Root_getPipeline)
+SE_BIND_FUNC_AS_PROP_GET(js_scene_Root_getPipeline)
 
 static bool js_scene_Root_getScenes(se::State& s) // NOLINT(readability-identifier-naming)
 {
@@ -10227,6 +10227,7 @@ bool js_register_scene_Root(se::Object* obj) // NOLINT(readability-identifier-na
     cls->defineProperty("fps", _SE(js_scene_Root_getFps_asGetter), nullptr);
     cls->defineProperty("fixedFPS", _SE(js_scene_Root_getFixedFPS_asGetter), _SE(js_scene_Root_setFixedFPS_asSetter));
     cls->defineProperty("useDeferredPipeline", _SE(js_scene_Root_isUsingDeferredPipeline_asGetter), nullptr);
+    cls->defineProperty("pipeline", _SE(js_scene_Root_getPipeline_asGetter), nullptr);
     cls->defineFunction("activeWindow", _SE(js_scene_Root_activeWindow));
     cls->defineFunction("createCamera", _SE(js_scene_Root_createCamera));
     cls->defineFunction("createScene", _SE(js_scene_Root_createScene));
@@ -10241,7 +10242,6 @@ bool js_register_scene_Root(se::Object* obj) // NOLINT(readability-identifier-na
     cls->defineFunction("frameMove", _SE(js_scene_Root_frameMove));
     cls->defineFunction("getBatcher2D", _SE(js_scene_Root_getBatcher2D));
     cls->defineFunction("getEventProcessor", _SE(js_scene_Root_getEventProcessor));
-    cls->defineFunction("getPipeline", _SE(js_scene_Root_getPipeline));
     cls->defineFunction("_initialize", _SE(js_scene_Root_initialize));
     cls->defineFunction("onGlobalPipelineStateChanged", _SE(js_scene_Root_onGlobalPipelineStateChanged));
     cls->defineFunction("resetCumulativeTime", _SE(js_scene_Root_resetCumulativeTime));
@@ -15622,6 +15622,25 @@ static bool js_scene_Camera_getFrustum(se::State& s) // NOLINT(readability-ident
 }
 SE_BIND_FUNC_AS_PROP_GET(js_scene_Camera_getFrustum)
 
+static bool js_scene_Camera_getGeometryRenderer(se::State& s) // NOLINT(readability-identifier-naming)
+{
+    auto* cobj = SE_THIS_OBJECT<cc::scene::Camera>(s);
+    SE_PRECONDITION2(cobj, false, "js_scene_Camera_getGeometryRenderer : Invalid Native Object");
+    const auto& args = s.args();
+    size_t argc = args.size();
+    CC_UNUSED bool ok = true;
+    if (argc == 0) {
+        cc::pipeline::GeometryRenderer* result = cobj->getGeometryRenderer();
+        ok &= nativevalue_to_se(result, s.rval(), nullptr /*ctx*/);
+        SE_PRECONDITION2(ok, false, "js_scene_Camera_getGeometryRenderer : Error processing arguments");
+        SE_HOLD_RETURN_VALUE(result, s.thisObject(), s.rval());
+        return true;
+    }
+    SE_REPORT_ERROR("wrong number of arguments: %d, was expecting %d", (int)argc, 0);
+    return false;
+}
+SE_BIND_FUNC_AS_PROP_GET(js_scene_Camera_getGeometryRenderer)
+
 static bool js_scene_Camera_getHeight(se::State& s) // NOLINT(readability-identifier-naming)
 {
     auto* cobj = SE_THIS_OBJECT<cc::scene::Camera>(s);
@@ -16788,6 +16807,7 @@ bool js_register_scene_Camera(se::Object* obj) // NOLINT(readability-identifier-
     cls->defineProperty("screenScale", _SE(js_scene_Camera_getScreenScale_asGetter), _SE(js_scene_Camera_setScreenScale_asSetter));
     cls->defineProperty("visibility", _SE(js_scene_Camera_getVisibility_asGetter), _SE(js_scene_Camera_setVisibility_asSetter));
     cls->defineProperty("node", _SE(js_scene_Camera_getNode_asGetter), _SE(js_scene_Camera_setNode_asSetter));
+    cls->defineProperty("geometryRenderer", _SE(js_scene_Camera_getGeometryRenderer_asGetter), nullptr);
     cls->defineFunction("attachToScene", _SE(js_scene_Camera_attachToScene));
     cls->defineFunction("changeTargetWindow", _SE(js_scene_Camera_changeTargetWindow));
     cls->defineFunction("destroy", _SE(js_scene_Camera_destroy));

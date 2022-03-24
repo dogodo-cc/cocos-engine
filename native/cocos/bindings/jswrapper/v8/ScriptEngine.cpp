@@ -33,6 +33,7 @@
     #include "MissingSymbols.h"
     #include "Object.h"
     #include "Utils.h"
+    #include "base/std/container/map.h"
     #include "platform/FileUtils.h"
 
     #include <sstream>
@@ -51,8 +52,8 @@
 const unsigned int JSB_STACK_FRAME_LIMIT = 20;
 
     #ifdef CC_DEBUG
-unsigned int                    jsbInvocationCount = 0;
-std::map<std::string, unsigned> jsbFunctionInvokedRecords;
+unsigned int                      jsbInvocationCount = 0;
+ccstd::map<std::string, unsigned> jsbFunctionInvokedRecords;
     #endif
 
     #define RETRUN_VAL_IF_FAIL(cond, val) \

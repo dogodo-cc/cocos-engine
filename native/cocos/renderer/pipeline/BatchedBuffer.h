@@ -28,6 +28,7 @@
 #include <array>
 #include "Define.h"
 #include "base/RefCounted.h"
+#include "base/std/container/map.h"
 
 namespace cc {
 namespace scene {
@@ -73,11 +74,11 @@ public:
     inline const DynamicOffsetList &getDynamicOffset() const { return _dynamicOffsets; }
 
 private:
-    static map<scene::Pass *, map<uint, BatchedBuffer *>> buffers;
-    DynamicOffsetList                                     _dynamicOffsets;
-    BatchedItemList                                       _batches;
-    const scene::Pass *                                   _pass   = nullptr;
-    gfx::Device *                                         _device = nullptr;
+    static ccstd::map<scene::Pass *, ccstd::map<uint, BatchedBuffer *>> buffers;
+    DynamicOffsetList                                                   _dynamicOffsets;
+    BatchedItemList                                                     _batches;
+    const scene::Pass *                                                 _pass   = nullptr;
+    gfx::Device *                                                       _device = nullptr;
 };
 
 } // namespace pipeline

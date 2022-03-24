@@ -24,8 +24,9 @@
 ****************************************************************************/
 
 #include <boost/functional/hash.hpp>
-
 #include "VKStd.h"
+#include "base/std/container/map.h"
+#include "base/std/container/unordered_set.h"
 
 #include "VKCommands.h"
 #include "VKDevice.h"
@@ -301,9 +302,9 @@ struct AttachmentStatistics final {
         bool hasDepth() const { return usage == SubpassUsage::DEPTH || usage == SubpassUsage::DEPTH_RESOLVE; }
     };
 
-    uint32_t                  loadSubpass{VK_SUBPASS_EXTERNAL};
-    uint32_t                  storeSubpass{VK_SUBPASS_EXTERNAL};
-    map<uint32_t, SubpassRef> records; // ordered
+    uint32_t                         loadSubpass{VK_SUBPASS_EXTERNAL};
+    uint32_t                         storeSubpass{VK_SUBPASS_EXTERNAL};
+    ccstd::map<uint32_t, SubpassRef> records; // ordered
 
     void clear() {
         loadSubpass  = VK_SUBPASS_EXTERNAL;
@@ -341,7 +342,7 @@ private:
             return !memcmp(&lhs.srcSubpass, &rhs.srcSubpass, size);
         }
     };
-    unordered_set<VkSubpassDependency2, DependencyHasher, DependencyComparer> _hashes;
+    ccstd::unordered_set<VkSubpassDependency2, DependencyHasher, DependencyComparer> _hashes;
 };
 
 void cmdFuncCCVKCreateRenderPass(CCVKDevice *device, CCVKGPURenderPass *gpuRenderPass) {
@@ -1551,7 +1552,7 @@ void CCVKGPURecycleBin::clear() {
 VkSampleCountFlagBits CCVKGPUContext::getSampleCountForAttachments(Format format, VkFormat vkFormat, SampleCount sampleCount) const {
     if (sampleCount <= SampleCount::ONE) return VK_SAMPLE_COUNT_1_BIT;
 
-    static unordered_map<Format, VkSampleCountFlags> cacheMap;
+    static ccstd::unordered_map<Format, VkSampleCountFlags> cacheMap;
     if (!cacheMap.count(format)) {
         bool              hasDepth = GFX_FORMAT_INFOS[toNumber(format)].hasDepth;
         VkImageUsageFlags usages   = hasDepth ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;

@@ -43,8 +43,8 @@
 #endif
 #define JNI_DOWNLOADER(FUNC) JNI_METHOD1(ORG_DOWNLOADER_CLASS_NAME, FUNC)
 
-std::unordered_map<int, cc::network::DownloaderJava *> sDownloaderMap;
-std::mutex                                             sDownloaderMutex;
+ccstd::unordered_map<int, cc::network::DownloaderJava *> sDownloaderMap;
+std::mutex                                               sDownloaderMutex;
 
 static void insertDownloaderJava(int id, cc::network::DownloaderJava *downloaderPtr) {
     std::lock_guard<std::mutex> guard(sDownloaderMutex);
@@ -145,12 +145,12 @@ IDownloadTask *DownloaderJava::createCoTask(std::shared_ptr<const DownloadTask> 
                                        JCLS_DOWNLOADER,
                                        "createTask",
                                        "(" JARG_DOWNLOADER "I" JARG_STR JARG_STR "[" JARG_STR ")V")) {
-        jclass                                    jclassString = methodInfo.env->FindClass("java/lang/String");
-        jstring                                   jstrURL      = methodInfo.env->NewStringUTF(task->requestURL.c_str());
-        jstring                                   jstrPath     = methodInfo.env->NewStringUTF(task->storagePath.c_str());
-        jobjectArray                              jarrayHeader = methodInfo.env->NewObjectArray(task->header.size() * 2, jclassString, nullptr);
-        const std::map<std::string, std::string> &headMap      = task->header;
-        int                                       index        = 0;
+        jclass                                      jclassString = methodInfo.env->FindClass("java/lang/String");
+        jstring                                     jstrURL      = methodInfo.env->NewStringUTF(task->requestURL.c_str());
+        jstring                                     jstrPath     = methodInfo.env->NewStringUTF(task->storagePath.c_str());
+        jobjectArray                                jarrayHeader = methodInfo.env->NewObjectArray(task->header.size() * 2, jclassString, nullptr);
+        const ccstd::map<std::string, std::string> &headMap      = task->header;
+        int                                         index        = 0;
         for (const auto &it : headMap) {
             methodInfo.env->SetObjectArrayElement(jarrayHeader, index++, methodInfo.env->NewStringUTF(it.first.c_str()));
             methodInfo.env->SetObjectArrayElement(jarrayHeader, index++, methodInfo.env->NewStringUTF(it.second.c_str()));

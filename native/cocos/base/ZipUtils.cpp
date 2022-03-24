@@ -44,11 +44,11 @@
 #include <cassert>
 #include <cstdlib>
 
-#include <map>
 #include "base/Data.h"
 #include "base/Locked.h"
-#include "platform/FileUtils.h"
 #include "base/memory/Memory.h"
+#include "base/std/container/map.h"
+#include "platform/FileUtils.h"
 
 // minizip 1.2.0 is same with other platforms
 #ifndef unzGoToFirstFile64
@@ -460,8 +460,8 @@ public:
     Locked<unzFile, std::recursive_mutex> zipFile;
     std::unique_ptr<ourmemory_s>          memfs;
 
-    // std::unordered_map is faster if available on the platform
-    using FileListContainer = std::unordered_map<std::string, struct ZipEntryInfo>;
+    // ccstd::unordered_map is faster if available on the platform
+    using FileListContainer = ccstd::unordered_map<std::string, struct ZipEntryInfo>;
     FileListContainer fileList;
 };
 
