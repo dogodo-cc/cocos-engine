@@ -30,10 +30,11 @@
 #include "3d/models/BakedSkinningModel.h"
 #include "3d/models/SkinningModel.h"
 #include "base/Log.h"
+#include "core/Root.h"
 #include "core/scene-graph/Node.h"
 #include "profiler/Profiler.h"
 #include "renderer/pipeline/PipelineSceneData.h"
-#include "renderer/pipeline/RenderPipeline.h"
+#include "renderer/pipeline/custom/RenderInterfaceTypes.h"
 #include "scene/Camera.h"
 #include "scene/DirectionalLight.h"
 #include "scene/DrawBatch2D.h"
@@ -49,7 +50,7 @@ RenderScene::RenderScene() = default;
 RenderScene::~RenderScene() = default;
 
 void RenderScene::activate() {
-    const auto *sceneData = pipeline::RenderPipeline::getInstance()->getPipelineSceneData();
+    const auto *sceneData = Root::getInstance()->getPipeline()->getPipelineSceneData();
     _octree               = sceneData->getOctree();
 }
 
