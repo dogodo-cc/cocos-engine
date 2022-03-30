@@ -29,7 +29,6 @@
 #include <unistd.h>
 #include <functional>
 #include <thread>
-#include <vector>
 #include "base/Log.h"
 #include "base/Macros.h"
 #include "platform/java/jni/JniImp.h"
@@ -56,7 +55,7 @@ bool SystemWindow::createWindow(const char *title,
 void SystemWindow::setCursorEnabled(bool value) {
 }
 
-void SystemWindow::copyTextToClipboard(const std::string &text) {
+void SystemWindow::copyTextToClipboard(const ccstd::string &text) {
     copyTextToClipboardJNI(text);
 }
 

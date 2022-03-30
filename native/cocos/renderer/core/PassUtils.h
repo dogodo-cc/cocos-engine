@@ -25,9 +25,9 @@
 
 #pragma once
 
-#include <string>
 #include "base/Ptr.h"
 #include "base/TypeDef.h"
+#include "base/std/container/string.h"
 #include "cocos/base/Variant.h"
 
 #include "math/Color.h"
@@ -64,17 +64,17 @@ constexpr uint32_t  customizeType(uint32_t handle, gfx::Type type) {
     return (handle & ~TYPE_MASK) | ((static_cast<uint32_t>(type) << 26) & TYPE_MASK);
 }
 
-using MacroValue = cc::variant<int32_t, bool, std::string>;
+using MacroValue = cc::variant<int32_t, bool, ccstd::string>;
 
 /**
  * @en Combination of preprocess macros
  * @zh 预处理宏组合
  */
-using MacroRecord = Record<std::string, MacroValue>;
+using MacroRecord = Record<ccstd::string, MacroValue>;
 
 using MaterialProperty = cc::variant<cc::monostate /*0*/, float /*1*/, int32_t /*2*/, Vec2 /*3*/, Vec3 /*4*/, Vec4 /*5*/, Color, /*6*/ Mat3 /*7*/, Mat4 /*8*/, Quaternion /*9*/, IntrusivePtr<TextureBase> /*10*/, IntrusivePtr<gfx::Texture> /*11*/>;
 
-using MaterialPropertyList = std::vector<MaterialProperty>;
+using MaterialPropertyList = ccstd::vector<MaterialProperty>;
 
 using MaterialPropertyVariant = cc::variant<cc::monostate /*0*/, MaterialProperty /*1*/, MaterialPropertyList /*2*/>;
 
@@ -84,16 +84,16 @@ using MaterialPropertyVariant = cc::variant<cc::monostate /*0*/, MaterialPropert
 using GFXTypeReaderCallback = void (*)(const float *, MaterialProperty &, index_t);
 using GFXTypeWriterCallback = void (*)(float *, const MaterialProperty &, index_t);
 
-extern const std::unordered_map<gfx::Type, GFXTypeReaderCallback> type2reader; //NOLINT(readability-identifier-naming)
-extern const std::unordered_map<gfx::Type, GFXTypeWriterCallback> type2writer; //NOLINT(readability-identifier-naming)
+extern const ccstd::unordered_map<gfx::Type, GFXTypeReaderCallback> type2reader; //NOLINT(readability-identifier-naming)
+extern const ccstd::unordered_map<gfx::Type, GFXTypeWriterCallback> type2writer; //NOLINT(readability-identifier-naming)
 
 /**
  * @en Gets the default values for the given type of uniform
  * @zh 根据指定的 Uniform 类型来获取默认值
  * @param type The type of the uniform
  */
-const std::vector<float> &getDefaultFloatArrayFromType(gfx::Type type);
-const std::string &       getDefaultStringFromType(gfx::Type type);
+const ccstd::vector<float> &getDefaultFloatArrayFromType(gfx::Type type);
+const ccstd::string &       getDefaultStringFromType(gfx::Type type);
 
 /**
  * @en Combination of preprocess macros

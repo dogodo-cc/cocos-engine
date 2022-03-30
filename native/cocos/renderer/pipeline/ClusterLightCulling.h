@@ -33,9 +33,9 @@ namespace cc {
 namespace pipeline {
 class RenderPipeline;
 struct ShaderStrings {
-    String glsl4;
-    String glsl3;
-    String glsl1;
+    ccstd::string glsl4;
+    ccstd::string glsl3;
+    ccstd::string glsl1;
 };
 
 class ClusterLightCulling {
@@ -79,7 +79,7 @@ public:
     inline bool isInitialized() const { return _initialized; }
 
 private:
-    String &getShaderSource(ShaderStrings &sources);
+    ccstd::string &getShaderSource(ShaderStrings &sources);
 
     void initBuildingSatge();
 
@@ -130,8 +130,8 @@ private:
     std::array<float, (2 * sizeof(Vec4) + 2 * sizeof(Mat4)) / sizeof(float)> _constants{};
     gfx::Buffer *                                                            _constantsBuffer{nullptr};
 
-    vector<scene::Light *> _validLights;
-    std::vector<float>     _lightBufferData;
+    ccstd::vector<scene::Light *> _validLights;
+    ccstd::vector<float>          _lightBufferData;
 
     gfx::GeneralBarrier *_resetBarrier{nullptr};
 
@@ -145,8 +145,8 @@ private:
     float _lightMeterScale{10000.0F};
 
     // only rebuild clusters when camera project matrix changed
-    bool         _rebuildClusters{false};
-    vector<Mat4> _oldCamProjMats;
+    bool                _rebuildClusters{false};
+    ccstd::vector<Mat4> _oldCamProjMats;
 
     bool _initialized{false};
 };

@@ -25,8 +25,6 @@
 
 #pragma once
 
-#import <vector>
-
 #import <Metal/MTLBuffer.h>
 #import <Metal/MTLCommandQueue.h>
 #import <Metal/MTLRenderCommandEncoder.h>
@@ -36,6 +34,8 @@
 #import "MTLConfig.h"
 #import "MTLDevice.h"
 #import "MTLUtils.h"
+#include "base/std/container/queue.h"
+
 namespace cc {
 namespace gfx {
 class CCMTLBuffer;
@@ -55,24 +55,22 @@ constexpr size_t MegaBytesToBytes = 1024 * 1024;
 
 constexpr size_t MAX_COLORATTACHMENTS = 16u;
 
-class CCMTLGPUDescriptorSetLayout : public Object {
-public:
+struct CCMTLGPUDescriptorSetLayout {
     DescriptorSetLayoutBindingList bindings;
-    vector<uint>                   dynamicBindings;
-    vector<uint>                   descriptorIndices;
-    vector<uint>                   bindingIndices;
+    ccstd::vector<uint>            dynamicBindings;
+    ccstd::vector<uint>            descriptorIndices;
+    ccstd::vector<uint>            bindingIndices;
     uint                           descriptorCount = 0;
 };
-typedef vector<CCMTLGPUDescriptorSetLayout *> MTLGPUDescriptorSetLayoutList;
+typedef ccstd::vector<CCMTLGPUDescriptorSetLayout *> MTLGPUDescriptorSetLayoutList;
 
-class CCMTLGPUPipelineLayout : public Object {
-public:
-    MTLGPUDescriptorSetLayoutList setLayouts;
-    vector<vector<int>>           dynamicOffsetIndices;
+struct CCMTLGPUPipelineLayout {
+    MTLGPUDescriptorSetLayoutList     setLayouts;
+    ccstd::vector<ccstd::vector<int>> dynamicOffsetIndices;
 };
 
 struct CCMTLGPUUniformBlock {
-    String           name;
+    ccstd::string    name;
     uint             set           = INVALID_BINDING;
     uint             binding       = INVALID_BINDING;
     uint             mappedBinding = INVALID_BINDING;
@@ -82,7 +80,7 @@ struct CCMTLGPUUniformBlock {
 };
 
 struct CCMTLGPUSamplerBlock {
-    String           name;
+    ccstd::string    name;
     uint             set            = INVALID_BINDING;
     uint             binding        = INVALID_BINDING;
     uint             textureBinding = INVALID_BINDING;
@@ -93,18 +91,17 @@ struct CCMTLGPUSamplerBlock {
 };
 
 struct CCMTLGPUSubpassAttachment {
-    String name;
-    uint   set     = INVALID_BINDING;
-    uint   binding = INVALID_BINDING;
+    ccstd::string name;
+    uint          set     = INVALID_BINDING;
+    uint          binding = INVALID_BINDING;
 };
 
-class CCMTLGPUShader : public Object {
-public:
-    unordered_map<uint, CCMTLGPUUniformBlock> blocks;
-    unordered_map<uint, CCMTLGPUSamplerBlock> samplers;
+struct CCMTLGPUShader {
+    ccstd::unordered_map<uint, CCMTLGPUUniformBlock> blocks;
+    ccstd::unordered_map<uint, CCMTLGPUSamplerBlock> samplers;
 
-    vector<CCMTLGPUSubpassAttachment> inputs;
-    vector<CCMTLGPUSubpassAttachment> outputs;
+    ccstd::vector<CCMTLGPUSubpassAttachment> inputs;
+    ccstd::vector<CCMTLGPUSubpassAttachment> outputs;
 
     NSString *shaderSrc       = nil;
     bool      specializeColor = true;
@@ -114,19 +111,19 @@ public:
 };
 
 struct CCMTLGPUPipelineState {
-    MTLCullMode                                                             cullMode;
-    MTLWinding                                                              winding;
-    MTLTriangleFillMode                                                     fillMode;
-    MTLDepthClipMode                                                        depthClipMode;
-    MTLPrimitiveType                                                        primitiveType;
-    id<MTLRenderPipelineState>                                              mtlRenderPipelineState  = nil;
-    id<MTLDepthStencilState>                                                mtlDepthStencilState    = nil;
-    id<MTLComputePipelineState>                                             mtlComputePipelineState = nil;
-    uint                                                                    stencilRefFront         = 0;
-    uint                                                                    stencilRefBack          = 0;
-    vector<std::tuple<int /**vertexBufferBindingIndex*/, uint /**stream*/>> vertexBufferBindingInfo;
-    const CCMTLGPUPipelineLayout *                                          gpuPipelineLayout = nullptr;
-    const CCMTLGPUShader *                                                  gpuShader         = nullptr;
+    MTLCullMode                                                                    cullMode;
+    MTLWinding                                                                     winding;
+    MTLTriangleFillMode                                                            fillMode;
+    MTLDepthClipMode                                                               depthClipMode;
+    MTLPrimitiveType                                                               primitiveType;
+    id<MTLRenderPipelineState>                                                     mtlRenderPipelineState  = nil;
+    id<MTLDepthStencilState>                                                       mtlDepthStencilState    = nil;
+    id<MTLComputePipelineState>                                                    mtlComputePipelineState = nil;
+    uint                                                                           stencilRefFront         = 0;
+    uint                                                                           stencilRefBack          = 0;
+    ccstd::vector<std::tuple<int /**vertexBufferBindingIndex*/, uint /**stream*/>> vertexBufferBindingInfo;
+    const CCMTLGPUPipelineLayout *                                                 gpuPipelineLayout = nullptr;
+    const CCMTLGPUShader *                                                         gpuShader         = nullptr;
 };
 
 struct CCMTLGPUBuffer {
@@ -148,11 +145,10 @@ struct CCMTLGPUTextureViewObject {
     id<MTLTexture>  mtlTextureView;
 };
 
-class CCMTLGPUInputAssembler : public Object {
-public:
-    id<MTLBuffer>         mtlIndexBuffer    = nil;
-    id<MTLBuffer>         mtlIndirectBuffer = nil;
-    vector<id<MTLBuffer>> mtlVertexBufers;
+struct CCMTLGPUInputAssembler {
+    id<MTLBuffer>                mtlIndexBuffer    = nil;
+    id<MTLBuffer>                mtlIndirectBuffer = nil;
+    ccstd::vector<id<MTLBuffer>> mtlVertexBufers;
 };
 
 struct CCMTLGPUDescriptor {
@@ -161,15 +157,14 @@ struct CCMTLGPUDescriptor {
     CCMTLTexture * texture = nullptr;
     CCMTLSampler * sampler = nullptr;
 };
-typedef vector<CCMTLGPUDescriptor> MTLGPUDescriptorList;
+typedef ccstd::vector<CCMTLGPUDescriptor> MTLGPUDescriptorList;
 
-class CCMTLGPUDescriptorSet : public Object {
-public:
-    MTLGPUDescriptorList gpuDescriptors;
-    const vector<uint> * descriptorIndices = nullptr;
+struct CCMTLGPUDescriptorSet {
+    MTLGPUDescriptorList       gpuDescriptors;
+    const ccstd::vector<uint> *descriptorIndices = nullptr;
 };
 
-class CCMTLGPUStagingBufferPool : public Object {
+class CCMTLGPUStagingBufferPool final {
 public:
     CCMTLGPUStagingBufferPool(id<MTLDevice> device)
     : _device(device) {}
@@ -266,16 +261,16 @@ public:
 
 protected:
     struct Buffer {
-        id<MTLBuffer>         mtlBuffer = nil;
-        vector<id<MTLBuffer>> dynamicDataBuffers{MAX_FRAMES_IN_FLIGHT};
-        uint8_t *             mappedData = nullptr;
-        uint                  curOffset  = 0;
+        id<MTLBuffer>                mtlBuffer = nil;
+        ccstd::vector<id<MTLBuffer>> dynamicDataBuffers{MAX_FRAMES_IN_FLIGHT};
+        uint8_t *                    mappedData = nullptr;
+        uint                         curOffset  = 0;
     };
 
-    bool           _tripleEnabled = false;
-    uint           _inflightIndex = 0;
-    id<MTLDevice>  _device        = nil;
-    vector<Buffer> _pool;
+    bool                  _tripleEnabled = false;
+    uint                  _inflightIndex = 0;
+    id<MTLDevice>         _device        = nil;
+    ccstd::vector<Buffer> _pool;
 };
 
 struct CCMTLGPUBufferImageCopy {
@@ -288,7 +283,7 @@ struct CCMTLGPUBufferImageCopy {
 };
 
 //destroy GPU resource only, delete the owner object mannually.
-class CCMTLGPUGarbageCollectionPool : public Object {
+class CCMTLGPUGarbageCollectionPool final {
     using GCFunc = std::function<void(void)>;
 
     CCMTLGPUGarbageCollectionPool() = default;
@@ -331,7 +326,7 @@ public:
 protected:
     //avoid cross-reference with CCMTLDevice
     std::function<uint8_t(void)> _getFrameIndex;
-    std::queue<GCFunc>           _releaseQueue[MAX_FRAMES_IN_FLIGHT];
+    ccstd::queue<GCFunc>         _releaseQueue[MAX_FRAMES_IN_FLIGHT];
 };
 
 struct CCMTLGPUSwapChainObject {

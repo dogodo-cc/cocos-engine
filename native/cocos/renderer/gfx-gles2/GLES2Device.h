@@ -34,11 +34,11 @@ namespace cc {
 namespace gfx {
 
 class GLES2GPUContext;
-class GLES2GPUSwapchain;
+struct GLES2GPUSwapchain;
 class GLES2GPUStateCache;
 class GLES2GPUBlitManager;
 class GLES2GPUFramebufferHub;
-class GLES2GPUConstantRegistry;
+struct GLES2GPUConstantRegistry;
 class GLES2GPUFramebufferCacheMap;
 
 class CC_GLES2_API GLES2Device final : public Device {
@@ -77,9 +77,9 @@ public:
     inline GLES2GPUConstantRegistry *   constantRegistry() const { return _gpuConstantRegistry; }
     inline GLES2GPUFramebufferCacheMap *framebufferCacheMap() const { return _gpuFramebufferCacheMap; }
 
-    inline bool checkExtension(const String &extension) const {
+    inline bool checkExtension(const ccstd::string &extension) const {
         return std::any_of(_extensions.begin(), _extensions.end(), [&extension](auto &ext) {
-            return ext.find(extension) != String::npos;
+            return ext.find(extension) != ccstd::string::npos;
         });
     }
 
@@ -127,13 +127,13 @@ protected:
     GLES2GPUConstantRegistry *   _gpuConstantRegistry{nullptr};
     GLES2GPUFramebufferCacheMap *_gpuFramebufferCacheMap{nullptr};
 
-    vector<GLES2GPUSwapchain *> _swapchains;
+    ccstd::vector<GLES2GPUSwapchain *> _swapchains;
 
     std::array<bool, static_cast<size_t>(Format::COUNT)> _textureExclusive;
 
     GLESBindingMapping _bindingMappings;
 
-    StringArray _extensions;
+    ccstd::vector<ccstd::string> _extensions;
 };
 
 } // namespace gfx

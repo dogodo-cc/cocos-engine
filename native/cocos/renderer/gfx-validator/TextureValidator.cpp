@@ -42,7 +42,7 @@ struct EnumHasher final {
     }
 };
 
-unordered_map<Format, Feature, EnumHasher> featureCheckMap{};
+ccstd::unordered_map<Format, Feature, EnumHasher> featureCheckMap{};
 } // namespace
 
 TextureValidator::TextureValidator(Texture *actor)
@@ -80,7 +80,8 @@ void TextureValidator::doInit(const TextureInfo &info) {
 
 void TextureValidator::doInit(const TextureViewInfo &info) {
     CCASSERT(!isInited(), "initializing twice?");
-    _inited = true;
+    _inited        = true;
+    _isTextureView = true;
     CCASSERT(info.texture && static_cast<TextureValidator *>(info.texture)->isInited(), "alread destroyed?");
 
     /////////// execute ///////////

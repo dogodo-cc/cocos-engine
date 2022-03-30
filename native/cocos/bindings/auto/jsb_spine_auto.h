@@ -1,6 +1,6 @@
 // clang-format off
 #pragma once
-#include "base/Config.h"
+
 #include <type_traits>
 #include "cocos/bindings/jswrapper/SeApi.h"
 #include "cocos/bindings/manual/jsb_conversions.h"
@@ -1098,4 +1098,4 @@ bool js_register_spine_SkeletonDataMgr(se::Object *obj); // NOLINT
 SE_DECLARE_FUNC(js_spine_SkeletonDataMgr_setDestroyCallback);
 SE_DECLARE_FUNC(js_spine_SkeletonDataMgr_getInstance);
 SE_DECLARE_FUNC(js_spine_SkeletonDataMgr_SkeletonDataMgr);
-    // clang-format on
+// clang-format on

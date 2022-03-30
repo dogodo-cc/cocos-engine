@@ -31,7 +31,7 @@
 
 namespace cc {
 
-const std::unordered_map<gfx::Type, GFXTypeReaderCallback> type2reader = {
+const ccstd::unordered_map<gfx::Type, GFXTypeReaderCallback> type2reader = {
     {gfx::Type::UNKNOWN, [](const float * /*a*/, MaterialProperty & /*v*/, index_t /*idx*/) {
          CC_LOG_ERROR("type2reader unknown type");
      }},
@@ -99,7 +99,7 @@ const std::unordered_map<gfx::Type, GFXTypeReaderCallback> type2reader = {
      }},
 };
 
-const std::unordered_map<gfx::Type, GFXTypeWriterCallback> type2writer = {
+const ccstd::unordered_map<gfx::Type, GFXTypeWriterCallback> type2writer = {
     {gfx::Type::UNKNOWN, [](float * /*a*/, const MaterialProperty & /*v*/, index_t /*idx*/) {
          CC_LOG_ERROR("type2writer unknown type");
      }},
@@ -207,8 +207,8 @@ const std::unordered_map<gfx::Type, GFXTypeWriterCallback> type2writer = {
      }},
 };
 
-const std::vector<float> &getDefaultFloatArrayFromType(gfx::Type type) {
-    static const std::vector<float> DEFAULT_FLOAT_VALUES[] = {
+const ccstd::vector<float> &getDefaultFloatArrayFromType(gfx::Type type) {
+    static const ccstd::vector<float> DEFAULT_FLOAT_VALUES[] = {
         {0},
         {0, 0},
         {0, 0, 0, 0},
@@ -237,9 +237,9 @@ const std::vector<float> &getDefaultFloatArrayFromType(gfx::Type type) {
     }
 }
 
-const std::string &getDefaultStringFromType(gfx::Type type) {
-    static const std::string DEFAULT_TEXTURE_STR{"default-texture"};
-    static const std::string DEFAULT_CUBE_TEXTURE_STR{"default-cube-texture"};
+const ccstd::string &getDefaultStringFromType(gfx::Type type) {
+    static const ccstd::string DEFAULT_TEXTURE_STR{"default-texture"};
+    static const ccstd::string DEFAULT_CUBE_TEXTURE_STR{"default-cube-texture"};
 
     switch (type) {
         case gfx::Type::SAMPLER2D:

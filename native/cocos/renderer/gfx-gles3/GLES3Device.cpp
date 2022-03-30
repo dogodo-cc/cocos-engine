@@ -43,6 +43,7 @@
 #include "GLES3Shader.h"
 #include "GLES3Swapchain.h"
 #include "GLES3Texture.h"
+#include "profiler/Profiler.h"
 #include "states/GLES3GeneralBarrier.h"
 #include "states/GLES3Sampler.h"
 
@@ -74,7 +75,6 @@ bool GLES3Device::doInit(const DeviceInfo & /*info*/) {
     _gpuContext             = CC_NEW(GLES3GPUContext);
     _gpuStateCache          = CC_NEW(GLES3GPUStateCache);
     _gpuFramebufferHub      = CC_NEW(GLES3GPUFramebufferHub);
-    _gpuSamplerRegistry     = CC_NEW(GLES3GPUSamplerRegistry);
     _gpuConstantRegistry    = CC_NEW(GLES3GPUConstantRegistry);
     _gpuFramebufferCacheMap = CC_NEW(GLES3GPUFramebufferCacheMap(_gpuStateCache));
 
@@ -98,8 +98,8 @@ bool GLES3Device::doInit(const DeviceInfo & /*info*/) {
     }
     _bindingMappings.flexibleSet = _bindingMappingInfo.setIndices.back();
 
-    String extStr = reinterpret_cast<const char *>(glGetString(GL_EXTENSIONS));
-    _extensions   = StringUtil::split(extStr, " ");
+    ccstd::string extStr = reinterpret_cast<const char *>(glGetString(GL_EXTENSIONS));
+    _extensions          = StringUtil::split(extStr, " ");
 
     initFormatFeature();
 
@@ -114,14 +114,14 @@ bool GLES3Device::doInit(const DeviceInfo & /*info*/) {
         _features[toNumber(Feature::COMPUTE_SHADER)] = true;
     }
 
-    String fbfLevelStr = "NONE";
+    ccstd::string fbfLevelStr = "NONE";
     // PVRVFrame has issues on their support
 #if CC_PLATFORM != CC_PLATFORM_WINDOWS
     if (checkExtension("framebuffer_fetch")) {
-        String nonCoherent = "framebuffer_fetch_non";
+        ccstd::string nonCoherent = "framebuffer_fetch_non";
 
         auto it = std::find_if(_extensions.begin(), _extensions.end(), [&nonCoherent](auto &ext) {
-            return ext.find(nonCoherent) != String::npos;
+            return ext.find(nonCoherent) != ccstd::string::npos;
         });
 
         if (it != _extensions.end()) {
@@ -152,7 +152,7 @@ bool GLES3Device::doInit(const DeviceInfo & /*info*/) {
     }
 #endif
 
-    String compressedFmts;
+    ccstd::string compressedFmts;
 
     if (getFormatFeatures(Format::ETC_RGB8) != FormatFeature::NONE) {
         compressedFmts += "etc1 ";
@@ -229,7 +229,6 @@ bool GLES3Device::doInit(const DeviceInfo & /*info*/) {
 void GLES3Device::doDestroy() {
     CC_SAFE_DELETE(_gpuFramebufferCacheMap)
     CC_SAFE_DELETE(_gpuConstantRegistry)
-    CC_SAFE_DELETE(_gpuSamplerRegistry)
     CC_SAFE_DELETE(_gpuFramebufferHub)
     CC_SAFE_DELETE(_gpuStateCache)
 
@@ -252,6 +251,7 @@ void GLES3Device::acquire(Swapchain *const *swapchains, uint32_t count) {
 }
 
 void GLES3Device::present() {
+    CC_PROFILE(GLES3DevicePresent);
     auto *queue   = static_cast<GLES3Queue *>(_queue);
     _numDrawCalls = queue->_numDrawCalls;
     _numInstances = queue->_numInstances;
@@ -541,14 +541,17 @@ GeneralBarrier *GLES3Device::createGeneralBarrier(const GeneralBarrierInfo &info
 }
 
 void GLES3Device::copyBuffersToTexture(const uint8_t *const *buffers, Texture *dst, const BufferTextureCopy *regions, uint32_t count) {
+    CC_PROFILE(GLES3DeviceCopyBuffersToTexture);
     cmdFuncGLES3CopyBuffersToTexture(this, buffers, static_cast<GLES3Texture *>(dst)->gpuTexture(), regions, count);
 }
 
 void GLES3Device::copyTextureToBuffers(Texture *srcTexture, uint8_t *const *buffers, const BufferTextureCopy *regions, uint32_t count) {
+    CC_PROFILE(GLES3DeviceCopyTextureToBuffers);
     cmdFuncGLES3CopyTextureToBuffers(this, static_cast<GLES3Texture *>(srcTexture)->gpuTexture(), buffers, regions, count);
 }
 
 void GLES3Device::getQueryPoolResults(QueryPool *queryPool) {
+    CC_PROFILE(GLES3DeviceGetQueryPoolResults);
     auto *cmdBuff = static_cast<GLES3CommandBuffer *>(getCommandBuffer());
     cmdBuff->getQueryPoolResults(queryPool);
 }

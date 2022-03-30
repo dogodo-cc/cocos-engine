@@ -42,22 +42,15 @@
 #include <array>
 #include <atomic>
 #include <cstdint>
-#include <deque>
 #include <exception>
 #include <functional>
 #include <list>
-#include <map>
 #include <mutex>
-#include <queue>
-#include <set>
-#include <string>
 #include <thread>
-#include <unordered_map>
-#include <vector>
+#include "base/std/container/string.h"
 
 #include "base/CachedArray.h"
 #include "base/Log.h"
-#include "base/Object.h"
 #include "base/StringUtil.h"
 #include "base/TypeDef.h"
 #include "base/memory/Memory.h"
@@ -67,8 +60,8 @@
 #define CC_JOB_SYSTEM_TASKFLOW 1
 #define CC_JOB_SYSTEM_TBB      2
 
-#if USE_JOB_SYSTEM_TBB
+#if CC_USE_JOB_SYSTEM_TBB
     #define CC_JOB_SYSTEM CC_JOB_SYSTEM_TBB
-#elif USE_JOB_SYSTEM_TASKFLOW
+#elif CC_USE_JOB_SYSTEM_TASKFLOW
     #define CC_JOB_SYSTEM CC_JOB_SYSTEM_TASKFLOW
 #endif

@@ -24,6 +24,7 @@
 ****************************************************************************/
 
 #include "GLES3GPUObjects.h"
+#include "profiler/Profiler.h"
 
 #define FORCE_DISABLE_VALIDATION 1
 
@@ -34,7 +35,7 @@ namespace gfx {
 constexpr uint32_t DISABLE_VALIDATION_ASSERTIONS = 1; // 0 for default behavior, otherwise assertions will be disabled
 
 void GL_APIENTRY GLES3EGLDebugProc(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam) {
-    String sourceDesc;
+    ccstd::string sourceDesc;
     switch (source) {
         case GL_DEBUG_SOURCE_API_KHR: sourceDesc = "API"; break;
         case GL_DEBUG_SOURCE_SHADER_COMPILER_KHR: sourceDesc = "SHADER_COMPILER"; break;
@@ -44,7 +45,7 @@ void GL_APIENTRY GLES3EGLDebugProc(GLenum source, GLenum type, GLuint id, GLenum
         default: sourceDesc = "OTHER";
     }
 
-    String typeDesc;
+    ccstd::string typeDesc;
     switch (type) {
         case GL_DEBUG_TYPE_ERROR_KHR: typeDesc = "ERROR"; break;
         case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_KHR: typeDesc = "PEPRECATED_BEHAVIOR"; break;
@@ -57,7 +58,7 @@ void GL_APIENTRY GLES3EGLDebugProc(GLenum source, GLenum type, GLuint id, GLenum
         default: typeDesc = "OTHER";
     }
 
-    String severityDesc;
+    ccstd::string severityDesc;
     switch (severity) {
         case GL_DEBUG_SEVERITY_HIGH_KHR: severityDesc = "HIGH"; break;
         case GL_DEBUG_SEVERITY_MEDIUM_KHR: severityDesc = "MEDIUM"; break;
@@ -65,8 +66,8 @@ void GL_APIENTRY GLES3EGLDebugProc(GLenum source, GLenum type, GLuint id, GLenum
         default: severityDesc = "NOTIFICATION";
     }
 
-    String msg = StringUtil::format("source: %s, type: %s, severity: %s, message: %s",
-                                    sourceDesc.c_str(), typeDesc.c_str(), severityDesc.c_str(), message);
+    ccstd::string msg = StringUtil::format("source: %s, type: %s, severity: %s, message: %s",
+                                           sourceDesc.c_str(), typeDesc.c_str(), severityDesc.c_str(), message);
 
     if (severity == GL_DEBUG_SEVERITY_HIGH_KHR) {
         CC_LOG_ERROR(msg.c_str());
@@ -129,8 +130,8 @@ bool GLES3GPUContext::initialize(GLES3GPUStateCache *stateCache, GLES3GPUConstan
         EGL_SAMPLES, sampleSize,
         EGL_NONE};
 
-    int               numConfig{0};
-    vector<EGLConfig> eglConfigs;
+    int                      numConfig{0};
+    ccstd::vector<EGLConfig> eglConfigs;
 
     EGL_CHECK(success = eglChooseConfig(eglDisplay, defaultAttribs, nullptr, 0, &numConfig));
     if (success) {
@@ -295,6 +296,7 @@ void GLES3GPUContext::makeCurrent(const GLES3GPUSwapchain *drawSwapchain, const 
 }
 
 void GLES3GPUContext::present(const GLES3GPUSwapchain *swapchain) {
+    CC_PROFILE(GLES3GPUContextPresent);
     if (_eglCurrentInterval != swapchain->eglSwapInterval) {
         if (!eglSwapInterval(eglDisplay, swapchain->eglSwapInterval)) {
             CC_LOG_ERROR("eglSwapInterval() - FAILED.");

@@ -25,9 +25,8 @@
 ****************************************************************************/
 
 #include "network/DownloaderImpl-apple.h"
-#include <queue>
 #import <Foundation/Foundation.h>
-
+#include "base/std/container/queue.h"
 #include "network/Downloader.h"
 #include "base/UTF8.h"
 
@@ -53,7 +52,7 @@
 @interface DownloaderAppleImpl : NSObject <NSURLSessionDataDelegate, NSURLSessionDownloadDelegate> {
     const cc::network::DownloaderApple *_outer;
     cc::network::DownloaderHints _hints;
-    std::queue<NSURLSessionTask *> _taskQueue;
+    ccstd::queue<NSURLSessionTask *> _taskQueue;
 }
 @property (nonatomic, strong) NSURLSession *downloadSession;
 @property (nonatomic, strong) NSMutableDictionary *taskDict; // ocTask: DownloadTaskWrapper
@@ -272,7 +271,7 @@ void DownloaderApple::abort(const std::unique_ptr<IDownloadTask> &task) {
         DownloadTaskWrapper *wrapper = [self.taskDict objectForKey:taskKey];
 
         // no resume support for a data task
-        std::string storagePath = [wrapper get]->storagePath;
+        ccstd::string storagePath = [wrapper get]->storagePath;
         if (storagePath.length() == 0) {
             [taskKey cancel];
         } else {
@@ -311,7 +310,7 @@ void DownloaderApple::abort(const std::unique_ptr<IDownloadTask> &task) {
         DownloadTaskWrapper *wrapper = [self.taskDict objectForKey:task];
 
         // no resume support for a data task
-        std::string storagePath = [wrapper get]->storagePath;
+        ccstd::string storagePath = [wrapper get]->storagePath;
         if (storagePath.length() == 0) {
             [task cancel];
         } else {
@@ -417,7 +416,7 @@ void DownloaderApple::abort(const std::unique_ptr<IDownloadTask> &task) {
                 errorCode = cc::network::DownloadTask::ERROR_ABORT;
                 errorMsg = @"downloadFile:fail abort";
             }
-            std::vector<unsigned char> buf; // just a placeholder
+            ccstd::vector<unsigned char> buf; // just a placeholder
             _outer->onTaskFinish(*[wrapper get],
                                  cc::network::DownloadTask::ERROR_IMPL_INTERNAL,
                                  errorCode,
@@ -426,10 +425,10 @@ void DownloaderApple::abort(const std::unique_ptr<IDownloadTask> &task) {
         } else if (![wrapper get]->storagePath.length()) {
             // call onTaskFinish for a data task
             // (for a file download task, callback is called in didFinishDownloadingToURL)
-            std::string errorString;
+            ccstd::string errorString;
 
             const int64_t buflen = [wrapper totalBytesReceived];
-            std::vector<unsigned char> data((size_t)buflen);
+            ccstd::vector<unsigned char> data((size_t)buflen);
             char *buf = (char *)data.data();
             [wrapper transferDataToBuffer:buf lengthOfBuffer:buflen];
 
@@ -443,9 +442,9 @@ void DownloaderApple::abort(const std::unique_ptr<IDownloadTask> &task) {
 
             // Check for error status code
             if (statusCode >= 400) {
-                std::vector<unsigned char> buf; // just a placeholder
+                ccstd::vector<unsigned char> buf; // just a placeholder
                 const char *originalURL = [task.originalRequest.URL.absoluteString cStringUsingEncoding:NSUTF8StringEncoding];
-                std::string errorMessage = cc::StringUtils::format("Downloader: Failed to download %s with status code (%d)", originalURL, (int)statusCode);
+                ccstd::string errorMessage = cc::StringUtils::format("Downloader: Failed to download %s with status code (%d)", originalURL, (int)statusCode);
 
                 _outer->onTaskFinish(*[wrapper get],
                                      cc::network::DownloadTask::ERROR_IMPL_INTERNAL,
@@ -580,7 +579,7 @@ void DownloaderApple::abort(const std::unique_ptr<IDownloadTask> &task) {
     // copy file to dest location
     int errorCode = cc::network::DownloadTask::ERROR_NO_ERROR;
     int errorCodeInternal = 0;
-    std::string errorString;
+    ccstd::string errorString;
 
     NSError *error = nil;
     if ([fileManager copyItemAtURL:location toURL:destURL error:&error]) {
@@ -597,7 +596,7 @@ void DownloaderApple::abort(const std::unique_ptr<IDownloadTask> &task) {
             errorString = [error.localizedDescription cStringUsingEncoding:NSUTF8StringEncoding];
         }
     }
-    std::vector<unsigned char> buf; // just a placeholder
+    ccstd::vector<unsigned char> buf; // just a placeholder
     _outer->onTaskFinish(*[wrapper get], errorCode, errorCodeInternal, errorString, buf);
 }
 

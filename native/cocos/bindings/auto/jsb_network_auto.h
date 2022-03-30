@@ -1,6 +1,6 @@
 // clang-format off
 #pragma once
-#include "base/Config.h"
+
 #include <type_traits>
 #include "cocos/bindings/jswrapper/SeApi.h"
 #include "cocos/bindings/manual/jsb_conversions.h"
@@ -27,4 +27,4 @@ bool js_register_cc_network_Downloader(se::Object *obj); // NOLINT
 
 SE_DECLARE_FUNC(js_network_Downloader_setOnTaskProgress);
 SE_DECLARE_FUNC(js_network_Downloader_Downloader);
-    // clang-format on
+// clang-format on

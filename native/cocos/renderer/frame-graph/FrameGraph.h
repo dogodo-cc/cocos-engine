@@ -26,8 +26,6 @@
 #pragma once
 
 #include <cstdint>
-#include <string>
-#include <vector>
 #include "Blackboard.h"
 #include "CallbackPass.h"
 #include "DevicePass.h"
@@ -35,6 +33,7 @@
 #include "PassNodeBuilder.h"
 #include "ResourceEntry.h"
 #include "ResourceNode.h"
+#include "base/std/container/string.h"
 
 namespace cc {
 namespace framegraph {
@@ -74,7 +73,7 @@ public:
     inline const ResourceNode &      getResourceNode(const Handle handle) const noexcept { return _resourceNodes[handle]; }
     inline ResourceHandleBlackboard &getBlackboard() noexcept { return _blackboard; }
 
-    void        exportGraphViz(const std::string &path);
+    void        exportGraphViz(const ccstd::string &path);
     inline void enableMerge(bool enable) noexcept;
     bool        hasPass(StringHandle handle);
 
@@ -90,12 +89,12 @@ private:
     void          generateDevicePasses();
     ResourceNode *getResourceNode(const VirtualResource *virtualResource, uint8_t version) noexcept;
 
-    std::vector<std::unique_ptr<PassNode>>        _passNodes{};
-    std::vector<ResourceNode>                     _resourceNodes{};
-    std::vector<std::unique_ptr<VirtualResource>> _virtualResources{};
-    std::vector<std::unique_ptr<DevicePass>>      _devicePasses{};
-    ResourceHandleBlackboard                      _blackboard;
-    bool                                          _merge{true};
+    ccstd::vector<std::unique_ptr<PassNode>>        _passNodes{};
+    ccstd::vector<ResourceNode>                     _resourceNodes{};
+    ccstd::vector<std::unique_ptr<VirtualResource>> _virtualResources{};
+    ccstd::vector<std::unique_ptr<DevicePass>>      _devicePasses{};
+    ResourceHandleBlackboard                        _blackboard;
+    bool                                            _merge{true};
 
     friend class PassNode;
     friend class PassNodeBuilder;

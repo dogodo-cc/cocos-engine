@@ -24,28 +24,28 @@
 ****************************************************************************/
 
 #include "EventDispatcher.h"
+#include "cocos/application/ApplicationManager.h"
 #include "cocos/bindings/event/CustomEventTypes.h"
 #include "cocos/bindings/jswrapper/SeApi.h"
 #include "cocos/bindings/manual/jsb_global_init.h"
-#include "cocos/application/ApplicationManager.h"
 #include "cocos/platform/interfaces/modules/ISystemWindow.h"
 
 namespace {
-se::Value                 tickVal;
-se::ValueArray            tickArgsValArr(1);
-std::vector<se::Object *> jsTouchObjPool;
-se::Object *              jsTouchObjArray       = nullptr;
-se::Object *              jsMouseEventObj       = nullptr;
-se::Object *              jsKeyboardEventObj    = nullptr;
-se::Object *              jsResizeEventObj      = nullptr;
-se::Object *              jsOrientationEventObj = nullptr;
-bool                      inited                = false;
+se::Value                   tickVal;
+se::ValueArray              tickArgsValArr(1);
+ccstd::vector<se::Object *> jsTouchObjPool;
+se::Object *                jsTouchObjArray       = nullptr;
+se::Object *                jsMouseEventObj       = nullptr;
+se::Object *                jsKeyboardEventObj    = nullptr;
+se::Object *                jsResizeEventObj      = nullptr;
+se::Object *                jsOrientationEventObj = nullptr;
+bool                        inited                = false;
 } // namespace
 
 namespace cc {
 
-std::unordered_map<std::string, EventDispatcher::Node *> EventDispatcher::listeners;
-uint32_t                                                 EventDispatcher::hashListenerId = 1;
+ccstd::unordered_map<ccstd::string, EventDispatcher::Node *> EventDispatcher::listeners;
+uint32_t                                                     EventDispatcher::hashListenerId = 1;
 
 bool EventDispatcher::initialized() {
     return inited && se::ScriptEngine::getInstance()->isValid();
@@ -317,7 +317,7 @@ void EventDispatcher::dispatchRecreateWindowEvent() {
     EventDispatcher::doDispatchEvent(EVENT_RECREATE_WINDOW, "", se::EmptyValueArray);
 }
 
-void EventDispatcher::doDispatchEvent(const char *eventName, const char *jsFunctionName, const std::vector<se::Value> &args) {
+void EventDispatcher::doDispatchEvent(const char *eventName, const char *jsFunctionName, const ccstd::vector<se::Value> &args) {
     if (!se::ScriptEngine::getInstance()->isValid()) {
         return;
     }
@@ -346,7 +346,7 @@ void EventDispatcher::doDispatchEvent(const char *eventName, const char *jsFunct
     }
 }
 
-uint32_t EventDispatcher::addCustomEventListener(const std::string &eventName, const CustomEventListener &listener) {
+uint32_t EventDispatcher::addCustomEventListener(const ccstd::string &eventName, const CustomEventListener &listener) {
     Node *newNode       = new Node();
     newNode->listener   = listener;
     newNode->listenerID = hashListenerId;
@@ -368,7 +368,7 @@ uint32_t EventDispatcher::addCustomEventListener(const std::string &eventName, c
     return hashListenerId++;
 }
 
-void EventDispatcher::removeCustomEventListener(const std::string &eventName, uint32_t listenerID) {
+void EventDispatcher::removeCustomEventListener(const ccstd::string &eventName, uint32_t listenerID) {
     if (eventName.empty()) {
         return;
     }
@@ -401,7 +401,7 @@ void EventDispatcher::removeCustomEventListener(const std::string &eventName, ui
     }
 }
 
-void EventDispatcher::removeAllCustomEventListeners(const std::string &eventName) {
+void EventDispatcher::removeAllCustomEventListeners(const ccstd::string &eventName) {
     auto iter = listeners.find(eventName);
     if (iter != listeners.end()) {
         Node *node = iter->second;

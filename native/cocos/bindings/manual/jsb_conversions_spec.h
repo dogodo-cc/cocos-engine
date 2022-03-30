@@ -21,10 +21,9 @@
 
 #pragma once
 
-#include <unordered_map>
-#include <vector>
 #include "base/Ptr.h"
 #include "base/Value.h"
+#include "base/std/container/unordered_map.h"
 #include "bindings/jswrapper/SeApi.h"
 #include "cocos/base/Any.h"
 #include "cocos/base/Optional.h"
@@ -33,7 +32,7 @@
 #include "core/TypedArray.h"
 #include "core/assets/RenderingSubMesh.h"
 
-#if USE_PHYSICS_PHYSX
+#if CC_USE_PHYSICS_PHYSX
     #include "physics/spec/IShape.h"
     #include "physics/spec/IWorld.h"
 #endif
@@ -124,7 +123,7 @@ struct InputAssemblerInfo;
 } // namespace gfx
 } // namespace cc
 
-#if USE_SPINE
+#if CC_USE_SPINE
 
 namespace spine {
 class String;
@@ -159,11 +158,11 @@ bool sevalue_to_native(const se::Value &from, cc::any *to, se::Object *ctx); //N
 bool sevalue_to_native(const se::Value &from, cc::ArrayBuffer *to, se::Object * /*ctx*/);  // NOLINT(readability-identifier-naming)
 bool sevalue_to_native(const se::Value &from, cc::ArrayBuffer **to, se::Object * /*ctx*/); // NOLINT(readability-identifier-naming)
 
-bool sevalue_to_native(const se::Value &from, std::vector<cc::MacroRecord> *to, se::Object * /*ctx*/); // NOLINT(readability-identifier-naming)
+bool sevalue_to_native(const se::Value &from, ccstd::vector<cc::MacroRecord> *to, se::Object * /*ctx*/); // NOLINT(readability-identifier-naming)
 
 bool sevalue_to_native(const se::Value &from, cc::MaterialProperty *to, se::Object * /*ctx*/); // NOLINT(readability-identifier-naming)
 
-inline bool sevalue_to_native(const se::Value &from, std::string *to, se::Object * /*ctx*/) { // NOLINT(readability-identifier-naming)
+inline bool sevalue_to_native(const se::Value &from, ccstd::string *to, se::Object * /*ctx*/) { // NOLINT(readability-identifier-naming)
     if (!from.isNullOrUndefined()) {
         *to = from.toString();
     } else {
@@ -273,7 +272,7 @@ bool sevalue_to_native(const se::Value &from, cc::Quaternion *to, se::Object * /
 
 bool sevalue_to_native(const se::Value &from, cc::Color *to, se::Object * /*unused*/); // NOLINT(readability-identifier-naming)
 
-inline bool sevalue_to_native(const se::Value &from, std::vector<se::Value> *to, se::Object * /*unused*/) { // NOLINT(readability-identifier-naming)
+inline bool sevalue_to_native(const se::Value &from, ccstd::vector<se::Value> *to, se::Object * /*unused*/) { // NOLINT(readability-identifier-naming)
     if (from.isNullOrUndefined()) {
         to->clear();
         return true;
@@ -323,7 +322,7 @@ inline bool sevalue_to_native(const se::Value &from, void **to, se::Object * /*c
     return false;
 }
 
-inline bool sevalue_to_native(const se::Value &from, std::string **to, se::Object * /*ctx*/) { // NOLINT(readability-identifier-naming)
+inline bool sevalue_to_native(const se::Value &from, ccstd::string **to, se::Object * /*ctx*/) { // NOLINT(readability-identifier-naming)
     **to = from.toString();
     return true;
 }
@@ -332,11 +331,11 @@ inline bool sevalue_to_native(const se::Value &from, cc::ValueMap *to, se::Objec
     return seval_to_ccvaluemap(from, to);
 }
 
-bool sevalue_to_native(const se::Value &from, std::vector<bool> *to, se::Object * /*ctx*/); // NOLINT(readability-identifier-naming)
+bool sevalue_to_native(const se::Value &from, ccstd::vector<bool> *to, se::Object * /*ctx*/); // NOLINT(readability-identifier-naming)
 
-bool        sevalue_to_native(const se::Value &from, std::vector<unsigned char> *to, se::Object * /*ctx*/);              // NOLINT(readability-identifier-naming)
-bool        sevalue_to_native(const se::Value &from, cc::variant<std::vector<float>, std::string> *to, se::Object *ctx); // NOLINT(readability-identifier-naming)
-inline bool sevalue_to_native(const se::Value & /*from*/, cc::monostate * /*to*/, se::Object * /*ctx*/) {                // NOLINT(readability-identifier-naming)
+bool        sevalue_to_native(const se::Value &from, ccstd::vector<unsigned char> *to, se::Object * /*ctx*/);                // NOLINT(readability-identifier-naming)
+bool        sevalue_to_native(const se::Value &from, cc::variant<ccstd::vector<float>, ccstd::string> *to, se::Object *ctx); // NOLINT(readability-identifier-naming)
+inline bool sevalue_to_native(const se::Value & /*from*/, cc::monostate * /*to*/, se::Object * /*ctx*/) {                    // NOLINT(readability-identifier-naming)
     // nothing todo
     return false;
 }
@@ -377,14 +376,14 @@ bool DownloadTask_to_seval(const cc::network::DownloadTask &v, se::Value *ret); 
 
 bool nativevalue_to_se(const cc::ArrayBuffer &arrayBuffer, se::Value &to, se::Object * /*ctx*/); // NOLINT(readability-identifier-naming) // NOLINT
 
-inline bool nativevalue_to_se(const std::vector<int8_t> &from, se::Value &to, se::Object * /*ctx*/) { // NOLINT(readability-identifier-naming)
+inline bool nativevalue_to_se(const ccstd::vector<int8_t> &from, se::Value &to, se::Object * /*ctx*/) { // NOLINT(readability-identifier-naming)
     se::Object *array = se::Object::createTypedArray(se::Object::TypedArrayType::INT8, from.data(), from.size());
     to.setObject(array);
     array->decRef();
     return true;
 }
 
-inline bool nativevalue_to_se(const std::vector<uint8_t> &from, se::Value &to, se::Object * /*ctx*/) { // NOLINT(readability-identifier-naming)
+inline bool nativevalue_to_se(const ccstd::vector<uint8_t> &from, se::Value &to, se::Object * /*ctx*/) { // NOLINT(readability-identifier-naming)
     se::Object *array = se::Object::createTypedArray(se::Object::TypedArrayType::UINT8, from.data(), from.size());
     to.setObject(array);
     array->decRef();
@@ -443,19 +442,19 @@ inline bool nativevalue_to_se(bool from, se::Value &to, se::Object * /*ctx*/) { 
 }
 
 #if CC_PLATFORM == CC_PLATFORM_MAC_IOS || CC_PLATFORM == CC_PLATFORM_MAC_OSX
-inline bool nativevalue_to_se(unsigned long from, se::Value &to,  se::Object * /*ctx*/) { // NOLINT(readability-identifier-naming)
+inline bool nativevalue_to_se(unsigned long from, se::Value &to, se::Object * /*ctx*/) { // NOLINT(readability-identifier-naming)
     static_assert(sizeof(from) == 8, "");
     to.setDouble(static_cast<double>(from));
     return true;
 }
-inline bool nativevalue_to_se(long from,  se::Value &to,se::Object * /*ctx*/) { // NOLINT(readability-identifier-naming)
+inline bool nativevalue_to_se(long from, se::Value &to, se::Object * /*ctx*/) { // NOLINT(readability-identifier-naming)
     static_assert(sizeof(from) == 8, "");
     to.setDouble(static_cast<double>(from));
     return true;
 }
 #endif
 
-inline bool nativevalue_to_se(const std::string &from, se::Value &to, se::Object * /*ctx*/) { // NOLINT(readability-identifier-naming)
+inline bool nativevalue_to_se(const ccstd::string &from, se::Value &to, se::Object * /*ctx*/) { // NOLINT(readability-identifier-naming)
     to.setString(from);
     return true;
 }
@@ -474,7 +473,7 @@ bool nativevalue_to_se(const cc::Data &from, se::Value &to, se::Object *ctx); //
 
 bool nativevalue_to_se(const cc::Value &from, se::Value &to, se::Object *ctx); // NOLINT(readability-identifier-naming)
 
-bool nativevalue_to_se(const std::unordered_map<std::string, cc::Value> &from, se::Value &to, se::Object *ctx); // NOLINT(readability-identifier-naming)
+bool nativevalue_to_se(const ccstd::unordered_map<ccstd::string, cc::Value> &from, se::Value &to, se::Object *ctx); // NOLINT(readability-identifier-naming)
 
 bool nativevalue_to_se(const cc::Vec2 &from, se::Value &to, se::Object *ctx); // NOLINT(readability-identifier-naming)
 
@@ -517,7 +516,7 @@ inline bool nativevalue_to_se(const void_p &from, se::Value &to, se::Object * /*
 }
 
 // Spine conversions
-#if USE_SPINE
+#if CC_USE_SPINE
 
 bool sevalue_to_native(const se::Value &, spine::String *, se::Object *); // NOLINT(readability-identifier-naming)
 
@@ -529,19 +528,19 @@ bool sevalue_to_native(const se::Value &v, spine::Vector<spine::String> *ret, se
 
 #endif
 
-#if USE_MIDDLEWARE
+#if CC_USE_MIDDLEWARE
 inline bool nativevalue_to_se(const se_object_ptr &from, se::Value &to, se::Object * /*ctx*/) { // NOLINT(readability-identifier-naming)
     to.setObject(const_cast<se::Object *>(from));
     return true;
 }
-bool seval_to_Map_string_key(const se::Value &v, cc::RefMap<std::string, cc::middleware::Texture2D *> *ret); // NOLINT(readability-identifier-naming)
-#endif                                                                                                    //USE_MIDDLEWARE
+bool seval_to_Map_string_key(const se::Value &v, cc::RefMap<ccstd::string, cc::middleware::Texture2D *> *ret); // NOLINT(readability-identifier-naming)
+#endif                                                                                                         //CC_USE_MIDDLEWARE
 
-#if USE_PHYSICS_PHYSX
+#if CC_USE_PHYSICS_PHYSX
 
-bool nativevalue_to_se(const std::vector<std::shared_ptr<cc::physics::TriggerEventPair>> &from, se::Value &to, se::Object * /*ctx*/);
-bool nativevalue_to_se(const std::vector<cc::physics::ContactPoint> &from, se::Value &to, se::Object * /*ctx*/);
-bool nativevalue_to_se(const std::vector<std::shared_ptr<cc::physics::ContactEventPair>> &from, se::Value &to, se::Object *ctx);
+bool nativevalue_to_se(const ccstd::vector<std::shared_ptr<cc::physics::TriggerEventPair>> &from, se::Value &to, se::Object * /*ctx*/);
+bool nativevalue_to_se(const ccstd::vector<cc::physics::ContactPoint> &from, se::Value &to, se::Object * /*ctx*/);
+bool nativevalue_to_se(const ccstd::vector<std::shared_ptr<cc::physics::ContactEventPair>> &from, se::Value &to, se::Object *ctx);
 bool nativevalue_to_se(const cc::physics::RaycastResult &from, se::Value &to, se::Object *ctx);
 
 bool sevalue_to_native(const se::Value &from, cc::physics::ConvexDesc *to, se::Object *ctx);

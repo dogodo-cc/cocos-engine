@@ -29,8 +29,8 @@
 #include <cassert>
 #include <cctype>
 #include <cstring>
-#include <string>
 #include "base/Config.h" // CC_USE_JPEG, CC_USE_WEBP
+#include "base/std/container/string.h"
 
 #if CC_USE_JPEG
     #include "jpeg/jpeglib.h"
@@ -66,7 +66,7 @@ extern "C" {
     #include "platform/android/FileUtils-android.h"
 #endif
 
-#include <map>
+#include "base/std/container/unordered_map.h"
 
 namespace cc {
 
@@ -154,7 +154,7 @@ enum class PVR3TexturePixelFormat : uint64_t {
 };
 
 // v2
-using _pixel2_formathash = const std::map<PVR2TexturePixelFormat, gfx::Format>;
+using _pixel2_formathash = const ccstd::unordered_map<PVR2TexturePixelFormat, gfx::Format>;
 
 const _pixel2_formathash::value_type V2_PIXEL_FORMATHASH_VALUE[] = {
     _pixel2_formathash::value_type(PVR2TexturePixelFormat::BGRA8888, gfx::Format::BGRA8),
@@ -175,7 +175,7 @@ const int                PVR2_MAX_TABLE_ELEMENTS = sizeof(V2_PIXEL_FORMATHASH_VA
 const _pixel2_formathash V2_PIXEL_FORMATHASH(V2_PIXEL_FORMATHASH_VALUE, V2_PIXEL_FORMATHASH_VALUE + PVR2_MAX_TABLE_ELEMENTS);
 
 // v3
-using _pixel3_formathash                                = const std::map<PVR3TexturePixelFormat, gfx::Format>;
+using _pixel3_formathash                                = const ccstd::unordered_map<PVR3TexturePixelFormat, gfx::Format>;
 _pixel3_formathash::value_type v3PixelFormathashValue[] = {
     _pixel3_formathash::value_type(PVR3TexturePixelFormat::BGRA8888, gfx::Format::BGRA8),
     _pixel3_formathash::value_type(PVR3TexturePixelFormat::RGBA8888, gfx::Format::RGBA8),
@@ -272,7 +272,7 @@ Image::~Image() {
     CC_SAFE_FREE(_data);
 }
 
-bool Image::initWithImageFile(const std::string &path) {
+bool Image::initWithImageFile(const ccstd::string &path) {
     bool ret = false;
     //NOTE: fullPathForFilename isn't threadsafe. we should make sure the parameter is a full path.
     //    _filePath = FileUtils::getInstance()->fullPathForFilename(path);

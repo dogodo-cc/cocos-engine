@@ -30,6 +30,9 @@
  */
 // clang-format off
 #pragma once
+#include "cocos/base/Ptr.h"
+#include "cocos/renderer/frame-graph/FrameGraph.h"
+#include "cocos/renderer/pipeline/GlobalDescriptorSetManager.h"
 #include "cocos/renderer/pipeline/custom/NativePipelineFwd.h"
 #include "cocos/renderer/pipeline/custom/RenderCompilerTypes.h"
 #include "cocos/renderer/pipeline/custom/RenderInterfaceTypes.h"
@@ -42,18 +45,51 @@ class NativePipeline final : public Pipeline {
 public:
     NativePipeline() noexcept;
 
-    uint32_t addRenderTexture(const std::string& name, gfx::Format format, uint32_t width, uint32_t height, scene::RenderWindow* renderWindow) override;
-    uint32_t addRenderTarget(const std::string& name, gfx::Format format, uint32_t width, uint32_t height, ResourceResidency residency) override;
-    uint32_t addDepthStencil(const std::string& name, gfx::Format format, uint32_t width, uint32_t height, ResourceResidency residency) override;
-    void beginFrame(pipeline::PipelineSceneData* pplScene) override;
-    void endFrame() override;
-    RasterPassBuilder* addRasterPass(uint32_t width, uint32_t height, const std::string& layoutName, const std::string& name) override;
-    RasterPassBuilder* addRasterPass(uint32_t width, uint32_t height, const std::string& layoutName) override;
-    ComputePassBuilder* addComputePass(const std::string& layoutName, const std::string& name) override;
-    ComputePassBuilder* addComputePass(const std::string& layoutName) override;
-    MovePassBuilder* addMovePass(const std::string& name) override;
-    CopyPassBuilder* addCopyPass(const std::string& name) override;
-    void addPresentPass(const std::string& name, const std::string& swapchainName) override;
+    uint32_t            addRenderTexture(const ccstd::string& name, gfx::Format format, uint32_t width, uint32_t height, scene::RenderWindow* renderWindow) override;
+    uint32_t            addRenderTarget(const ccstd::string& name, gfx::Format format, uint32_t width, uint32_t height, ResourceResidency residency) override;
+    uint32_t            addDepthStencil(const ccstd::string& name, gfx::Format format, uint32_t width, uint32_t height, ResourceResidency residency) override;
+    void                beginFrame() override;
+    void                endFrame() override;
+    RasterPassBuilder  *addRasterPass(uint32_t width, uint32_t height, const ccstd::string& layoutName, const ccstd::string& name) override;
+    RasterPassBuilder  *addRasterPass(uint32_t width, uint32_t height, const ccstd::string& layoutName) override;
+    ComputePassBuilder *addComputePass(const ccstd::string& layoutName, const ccstd::string& name) override;
+    ComputePassBuilder *addComputePass(const ccstd::string& layoutName) override;
+    MovePassBuilder    *addMovePass(const ccstd::string& name) override;
+    CopyPassBuilder    *addCopyPass(const ccstd::string& name) override;
+    void                presentAll() override;
+
+    SceneTransversal *createSceneTransversal(const scene::Camera *camera, const scene::RenderScene *scene) override;
+
+    bool activate(gfx::Swapchain * swapchain) override;
+    bool destroy() noexcept override;
+    void render(const ccstd::vector<scene::Camera*>& cameras) override;
+
+    const MacroRecord           &getMacros() const override;
+    pipeline::GlobalDSManager   *getGlobalDSManager() const override;
+    gfx::DescriptorSetLayout    *getDescriptorSetLayout() const override;
+    pipeline::PipelineSceneData *getPipelineSceneData() const override;
+    const ccstd::string         &getConstantMacros() const override;
+    scene::Model                *getProfiler() const override;
+    void                         setProfiler(scene::Model *profiler) override;
+
+    float getShadingScale() const override;
+    void  setShadingScale(float scale) override;
+
+    void onGlobalPipelineStateChanged() override;
+
+    void setValue(const ccstd::string& name, int32_t value) override;
+    void setValue(const ccstd::string& name, bool value) override;
+
+    bool isOcclusionQueryEnabled() const override;
+
+    gfx::Device*                               device{nullptr};
+    gfx::Swapchain*                            swapchain{nullptr};
+    MacroRecord                                macros;
+    ccstd::string                              constantMacros;
+    std::unique_ptr<pipeline::GlobalDSManager> globalDSManager;
+    scene::Model*                              profiler{nullptr};
+    IntrusivePtr<pipeline::PipelineSceneData>  pipelineSceneData;
+    framegraph::FrameGraph                     frameGraph;
 };
 
 } // namespace render

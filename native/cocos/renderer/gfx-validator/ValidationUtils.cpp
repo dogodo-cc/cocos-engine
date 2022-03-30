@@ -26,7 +26,10 @@
 #include "ValidationUtils.h"
 
 #include "DeviceValidator.h"
-#include "bindings/jswrapper/SeApi.h"
+#ifndef CC_WGPU_WASM
+    #include "bindings/jswrapper/SeApi.h"
+#endif
+
 #include "gfx-base/GFXInputAssembler.h"
 #include "gfx-base/GFXPipelineState.h"
 #include "gfx-base/GFXRenderPass.h"
@@ -35,9 +38,13 @@ namespace cc {
 
 namespace utils {
 
-String getStacktraceJS() {
+ccstd::string getStacktraceJS() {
+#ifndef CC_WGPU_WASM
     if (!gfx::DeviceValidator::allowStacktraceJS) return "";
     return se::ScriptEngine::getInstance()->getCurrentStackTrace();
+#else
+    return "";
+#endif
 }
 
 } // namespace utils
@@ -86,13 +93,13 @@ void CommandRecorder::clear() {
     _drawcallCommands.clear();
 }
 
-vector<uint32_t> CommandRecorder::serialize(const CommandRecorder &recorder) {
-    vector<uint32_t> bytes;
+ccstd::vector<uint32_t> CommandRecorder::serialize(const CommandRecorder &recorder) {
+    ccstd::vector<uint32_t> bytes;
     bytes.push_back(static_cast<uint32_t>(recorder._commands.size()));
     return bytes;
 }
 
-CommandRecorder CommandRecorder::deserialize(const vector<uint32_t> &bytes) {
+CommandRecorder CommandRecorder::deserialize(const ccstd::vector<uint32_t> &bytes) {
     CommandRecorder recorder;
     recorder._commands.resize(bytes[0]);
     return recorder;

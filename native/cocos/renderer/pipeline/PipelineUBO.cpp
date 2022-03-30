@@ -80,13 +80,13 @@ void PipelineUBO::updateGlobalUBOView(const scene::Camera *camera, std::array<fl
 }
 
 void PipelineUBO::updateCameraUBOView(const RenderPipeline *pipeline, float *output, const scene::Camera *camera) {
-    const auto *const              scene         = camera->getScene();
-    const scene::DirectionalLight *mainLight     = scene->getMainLight();
-    const auto *                   sceneData     = pipeline->getPipelineSceneData();
-    const scene::Shadows *const    shadowInfo    = sceneData->getShadows();
-    const auto *                   ambient       = sceneData->getAmbient();
-    auto *                         fog           = sceneData->getFog();
-    const auto                     isHDR         = sceneData->isHDR();
+    const auto *const              scene      = camera->getScene();
+    const scene::DirectionalLight *mainLight  = scene->getMainLight();
+    const auto *                   sceneData  = pipeline->getPipelineSceneData();
+    const scene::Shadows *const    shadowInfo = sceneData->getShadows();
+    const auto *                   ambient    = sceneData->getAmbient();
+    auto *                         fog        = sceneData->getFog();
+    const auto                     isHDR      = sceneData->isHDR();
 
     auto *device = gfx::Device::getInstance();
 
@@ -161,6 +161,8 @@ void PipelineUBO::updateCameraUBOView(const RenderPipeline *pipeline, float *out
     memcpy(output + UBOCamera::MAT_VIEW_PROJ_OFFSET, camera->getMatViewProj().m, sizeof(cc::Mat4));
     memcpy(output + UBOCamera::MAT_VIEW_PROJ_INV_OFFSET, camera->getMatViewProjInv().m, sizeof(cc::Mat4));
     output[UBOCamera::CAMERA_POS_OFFSET + 3] = getCombineSignY();
+
+    output[UBOCamera::SURFACE_TRANSFORM_OFFSET + 0] = static_cast<float>(camera->getSurfaceTransform());
 
     if (fog != nullptr) {
         const auto &colorTempRGB                       = fog->getColorArray();
@@ -396,7 +398,7 @@ void PipelineUBO::updateCameraUBO(const scene::Camera *camera) {
     cmdBuffer->updateBuffer(_cameraBuffer, _cameraUBOs.data());
 }
 
-void PipelineUBO::updateMultiCameraUBO(const vector<scene::Camera *> &cameras) {
+void PipelineUBO::updateMultiCameraUBO(const ccstd::vector<scene::Camera *> &cameras) {
     const auto cameraCount  = cameras.size();
     const auto totalUboSize = static_cast<uint>(_alignedCameraUBOSize * cameraCount);
 

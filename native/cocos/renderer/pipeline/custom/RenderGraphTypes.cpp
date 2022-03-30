@@ -40,6 +40,12 @@ ResourceGraph::ResourceGraph(const allocator_type& alloc) noexcept
   names(alloc),
   descs(alloc),
   traits(alloc),
+  states(alloc),
+  resources(alloc),
+  buffers(alloc),
+  textures(alloc),
+  framebuffers(alloc),
+  swapchains(alloc),
   valueIndex(alloc) {}
 
 ResourceGraph::ResourceGraph(ResourceGraph&& rhs, const allocator_type& alloc)
@@ -47,6 +53,12 @@ ResourceGraph::ResourceGraph(ResourceGraph&& rhs, const allocator_type& alloc)
   names(std::move(rhs.names), alloc),
   descs(std::move(rhs.descs), alloc),
   traits(std::move(rhs.traits), alloc),
+  states(std::move(rhs.states), alloc),
+  resources(std::move(rhs.resources), alloc),
+  buffers(std::move(rhs.buffers), alloc),
+  textures(std::move(rhs.textures), alloc),
+  framebuffers(std::move(rhs.framebuffers), alloc),
+  swapchains(std::move(rhs.swapchains), alloc),
   valueIndex(std::move(rhs.valueIndex), alloc) {}
 
 ResourceGraph::ResourceGraph(ResourceGraph const& rhs, const allocator_type& alloc)
@@ -54,6 +66,12 @@ ResourceGraph::ResourceGraph(ResourceGraph const& rhs, const allocator_type& all
   names(rhs.names, alloc),
   descs(rhs.descs, alloc),
   traits(rhs.traits, alloc),
+  states(rhs.states, alloc),
+  resources(rhs.resources, alloc),
+  buffers(rhs.buffers, alloc),
+  textures(rhs.textures, alloc),
+  framebuffers(rhs.framebuffers, alloc),
+  swapchains(rhs.swapchains, alloc),
   valueIndex(rhs.valueIndex, alloc) {}
 
 // ContinuousContainer
@@ -62,6 +80,7 @@ void ResourceGraph::reserve(vertices_size_type sz) {
     names.reserve(sz);
     descs.reserve(sz);
     traits.reserve(sz);
+    states.reserve(sz);
 }
 
 ResourceGraph::Vertex::Vertex(const allocator_type& alloc) noexcept
@@ -70,11 +89,13 @@ ResourceGraph::Vertex::Vertex(const allocator_type& alloc) noexcept
 
 ResourceGraph::Vertex::Vertex(Vertex&& rhs, const allocator_type& alloc)
 : outEdges(std::move(rhs.outEdges), alloc),
-  inEdges(std::move(rhs.inEdges), alloc) {}
+  inEdges(std::move(rhs.inEdges), alloc),
+  handle(std::move(rhs.handle)) {}
 
 ResourceGraph::Vertex::Vertex(Vertex const& rhs, const allocator_type& alloc)
 : outEdges(rhs.outEdges, alloc),
-  inEdges(rhs.inEdges, alloc) {}
+  inEdges(rhs.inEdges, alloc),
+  handle(rhs.handle) {}
 
 RasterView::RasterView(const allocator_type& alloc) noexcept
 : slotName(alloc) {}
@@ -175,12 +196,14 @@ RasterPass::RasterPass(const allocator_type& alloc) noexcept
   subpassGraph(alloc) {}
 
 RasterPass::RasterPass(RasterPass&& rhs, const allocator_type& alloc)
-: rasterViews(std::move(rhs.rasterViews), alloc),
+: isValid(rhs.isValid),
+  rasterViews(std::move(rhs.rasterViews), alloc),
   computeViews(std::move(rhs.computeViews), alloc),
   subpassGraph(std::move(rhs.subpassGraph), alloc) {}
 
 RasterPass::RasterPass(RasterPass const& rhs, const allocator_type& alloc)
-: rasterViews(rhs.rasterViews, alloc),
+: isValid(rhs.isValid),
+  rasterViews(rhs.rasterViews, alloc),
   computeViews(rhs.computeViews, alloc),
   subpassGraph(rhs.subpassGraph, alloc) {}
 
@@ -343,22 +366,13 @@ Blit::Blit(Blit const& rhs, const allocator_type& alloc)
 : shader(rhs.shader, alloc) {}
 
 PresentPass::PresentPass(const allocator_type& alloc) noexcept
-: resourceName(alloc) {}
-
-PresentPass::PresentPass(PmrString resourceNameIn, uint32_t syncIntervalIn, uint32_t flagsIn, const allocator_type& alloc) noexcept // NOLINT
-: resourceName(std::move(resourceNameIn), alloc),
-  syncInterval(syncIntervalIn),
-  flags(flagsIn) {}
+: presents(alloc) {}
 
 PresentPass::PresentPass(PresentPass&& rhs, const allocator_type& alloc)
-: resourceName(std::move(rhs.resourceName), alloc),
-  syncInterval(rhs.syncInterval),
-  flags(rhs.flags) {}
+: presents(std::move(rhs.presents), alloc) {}
 
 PresentPass::PresentPass(PresentPass const& rhs, const allocator_type& alloc)
-: resourceName(rhs.resourceName, alloc),
-  syncInterval(rhs.syncInterval),
-  flags(rhs.flags) {}
+: presents(rhs.presents, alloc) {}
 
 RenderData::RenderData(const allocator_type& alloc) noexcept
 : constants(alloc),
@@ -378,6 +392,7 @@ RenderGraph::RenderGraph(const allocator_type& alloc) noexcept
   names(alloc),
   layoutNodes(alloc),
   data(alloc),
+  valid(alloc),
   rasterPasses(alloc),
   computePasses(alloc),
   copyPasses(alloc),
@@ -396,6 +411,7 @@ RenderGraph::RenderGraph(RenderGraph&& rhs, const allocator_type& alloc)
   names(std::move(rhs.names), alloc),
   layoutNodes(std::move(rhs.layoutNodes), alloc),
   data(std::move(rhs.data), alloc),
+  valid(std::move(rhs.valid), alloc),
   rasterPasses(std::move(rhs.rasterPasses), alloc),
   computePasses(std::move(rhs.computePasses), alloc),
   copyPasses(std::move(rhs.copyPasses), alloc),
@@ -415,6 +431,7 @@ void RenderGraph::reserve(vertices_size_type sz) {
     names.reserve(sz);
     layoutNodes.reserve(sz);
     data.reserve(sz);
+    valid.reserve(sz);
 }
 
 RenderGraph::Object::Object(const allocator_type& alloc) noexcept

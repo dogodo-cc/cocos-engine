@@ -41,6 +41,7 @@
 #include "GFXShader.h"
 #include "GFXSwapchain.h"
 #include "GFXTexture.h"
+#include "base/RefCounted.h"
 #include "states/GFXGeneralBarrier.h"
 #include "states/GFXSampler.h"
 #include "states/GFXTextureBarrier.h"
@@ -48,7 +49,7 @@
 namespace cc {
 namespace gfx {
 
-class CC_DLL Device : public Object {
+class CC_DLL Device : public RefCounted {
 public:
     static Device *getInstance();
 
@@ -92,20 +93,21 @@ public:
     virtual void copyTextureToBuffers(Texture *src, uint8_t *const *buffers, const BufferTextureCopy *region, uint32_t count)        = 0;
     virtual void getQueryPoolResults(QueryPool *queryPool)                                                                           = 0;
 
+    inline void copyTextureToBuffers(Texture *src, BufferSrcList &buffers, const BufferTextureCopyList &regions);
     inline void copyBuffersToTexture(const BufferDataList &buffers, Texture *dst, const BufferTextureCopyList &regions);
-    inline void flushCommands(const vector<CommandBuffer *> &cmdBuffs);
-    inline void acquire(const vector<Swapchain *> &swapchains);
+    inline void flushCommands(const ccstd::vector<CommandBuffer *> &cmdBuffs);
+    inline void acquire(const ccstd::vector<Swapchain *> &swapchains);
 
-    inline Queue *           getQueue() const { return _queue; }
-    inline QueryPool *       getQueryPool() const { return _queryPool; }
-    inline CommandBuffer *   getCommandBuffer() const { return _cmdBuff; }
-    inline const DeviceCaps &getCapabilities() const { return _caps; }
-    inline API               getGfxAPI() const { return _api; }
-    inline const String &    getDeviceName() const { return _deviceName; }
-    inline const String &    getRenderer() const { return _renderer; }
-    inline const String &    getVendor() const { return _vendor; }
-    inline bool              hasFeature(Feature feature) const { return _features[toNumber(feature)]; }
-    inline FormatFeature     getFormatFeatures(Format format) const { return _formatFeatures[toNumber(format)]; }
+    inline Queue *              getQueue() const { return _queue; }
+    inline QueryPool *          getQueryPool() const { return _queryPool; }
+    inline CommandBuffer *      getCommandBuffer() const { return _cmdBuff; }
+    inline const DeviceCaps &   getCapabilities() const { return _caps; }
+    inline API                  getGfxAPI() const { return _api; }
+    inline const ccstd::string &getDeviceName() const { return _deviceName; }
+    inline const ccstd::string &getRenderer() const { return _renderer; }
+    inline const ccstd::string &getVendor() const { return _vendor; }
+    inline bool                 hasFeature(Feature feature) const { return _features[toNumber(feature)]; }
+    inline FormatFeature        getFormatFeatures(Format format) const { return _formatFeatures[toNumber(format)]; }
 
     inline const BindingMappingInfo &bindingMappingInfo() const { return _bindingMappingInfo; }
 
@@ -114,6 +116,9 @@ public:
     template <typename ExecuteMethod>
     void registerOnAcquireCallback(ExecuteMethod &&execute);
 
+    inline bool isRendererAvailable() const { return _rendererAvailable; }
+
+    inline void setRendererAvailable(bool available) {_rendererAvailable = available;}
 protected:
     static Device *instance;
 
@@ -151,10 +156,10 @@ protected:
     // For context switching between threads
     virtual void bindContext(bool bound) {}
 
-    String             _deviceName;
-    String             _renderer;
-    String             _vendor;
-    String             _version;
+    ccstd::string      _deviceName;
+    ccstd::string      _renderer;
+    ccstd::string      _vendor;
+    ccstd::string      _version;
     API                _api{API::UNKNOWN};
     DeviceCaps         _caps;
     BindingMappingInfo _bindingMappingInfo;
@@ -174,12 +179,13 @@ protected:
     uint32_t     _numTriangles{0U};
     MemoryStatus _memoryStatus;
 
-    unordered_map<SamplerInfo, Sampler *, Hasher<SamplerInfo>>                      _samplers;
-    unordered_map<GeneralBarrierInfo, GeneralBarrier *, Hasher<GeneralBarrierInfo>> _generalBarriers;
-    unordered_map<TextureBarrierInfo, TextureBarrier *, Hasher<TextureBarrierInfo>> _textureBarriers;
+    ccstd::unordered_map<SamplerInfo, Sampler *, Hasher<SamplerInfo>>                      _samplers;
+    ccstd::unordered_map<GeneralBarrierInfo, GeneralBarrier *, Hasher<GeneralBarrierInfo>> _generalBarriers;
+    ccstd::unordered_map<TextureBarrierInfo, TextureBarrier *, Hasher<TextureBarrierInfo>> _textureBarriers;
 
 private:
-    vector<Swapchain *> _swapchains; // weak reference
+    ccstd::vector<Swapchain *> _swapchains; // weak reference
+    bool _rendererAvailable{false};
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -206,6 +212,13 @@ Swapchain *Device::createSwapchain(const SwapchainInfo &info) {
     Swapchain *res = createSwapchain();
     res->initialize(info);
     _swapchains.push_back(res);
+#if CC_PLATFORM == CC_PLATFORM_ANDROID || CC_PLATFORM == CC_PLATFORM_OHOS
+    if (res->getWindowHandle()) {
+        setRendererAvailable(true);
+    }
+#else
+    setRendererAvailable(true);
+#endif
     return res;
 }
 
@@ -285,11 +298,15 @@ void Device::copyBuffersToTexture(const BufferDataList &buffers, Texture *dst, c
     copyBuffersToTexture(buffers.data(), dst, regions.data(), utils::toUint(regions.size()));
 }
 
-void Device::flushCommands(const vector<CommandBuffer *> &cmdBuffs) {
+void Device::copyTextureToBuffers(Texture *src, BufferSrcList &buffers, const BufferTextureCopyList &regions) {
+    copyTextureToBuffers(src, buffers.data(), regions.data(), utils::toUint(regions.size()));
+}
+
+void Device::flushCommands(const ccstd::vector<CommandBuffer *> &cmdBuffs) {
     flushCommands(cmdBuffs.data(), utils::toUint(cmdBuffs.size()));
 }
 
-void Device::acquire(const vector<Swapchain *> &swapchains) {
+void Device::acquire(const ccstd::vector<Swapchain *> &swapchains) {
     acquire(swapchains.data(), utils::toUint(swapchains.size()));
 }
 

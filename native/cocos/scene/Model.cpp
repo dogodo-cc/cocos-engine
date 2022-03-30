@@ -30,8 +30,10 @@
 #include "core/assets/Material.h"
 #include "core/event/EventTypesToJS.h"
 #include "gfx-base/GFXTexture.h"
+#include "profiler/Profiler.h"
 #include "renderer/pipeline/Define.h"
 #include "renderer/pipeline/InstancedBuffer.h"
+#include "renderer/pipeline/custom/RenderInterfaceTypes.h"
 #include "scene/Model.h"
 #include "scene/Pass.h"
 #include "scene/RenderScene.h"
@@ -103,8 +105,8 @@ const cc::gfx::SamplerInfo LIGHTMAP_SAMPLER_WITH_MIP_HASH{
     cc::gfx::Address::CLAMP,
 };
 
-const std::vector<cc::scene::IMacroPatch> SHADOW_MAP_PATCHES{{"CC_RECEIVE_SHADOW", true}};
-const std::string                         INST_MAT_WORLD = "a_matWorld0";
+const ccstd::vector<cc::scene::IMacroPatch> SHADOW_MAP_PATCHES{{"CC_RECEIVE_SHADOW", true}};
+const ccstd::string                         INST_MAT_WORLD = "a_matWorld0";
 } // namespace
 
 namespace cc {
@@ -162,6 +164,7 @@ void Model::uploadMat4AsVec4x3(const Mat4 &mat, Float32Array &v1, Float32Array &
 }
 
 void Model::updateTransform(uint32_t stamp) {
+    CC_PROFILE(ModelUpdateTransform);
     if (isModelImplementedInJS()) {
         if (!_isCalledFromJS) {
             _eventProcessor.emit(EventTypesToJS::MODEL_UPDATE_TRANSFORM, stamp);
@@ -210,6 +213,7 @@ void Model::updateWorldBoundsForJSBakedSkinningModel(geometry::AABB *aabb) {
 }
 
 void Model::updateUBOs(uint32_t stamp) {
+    CC_PROFILE(ModelUpdateUBOs);
     if (isModelImplementedInJS()) {
         if (!_isCalledFromJS) {
             _eventProcessor.emit(EventTypesToJS::MODEL_UPDATE_UBO, stamp);
@@ -231,7 +235,7 @@ void Model::updateUBOs(uint32_t stamp) {
     Mat4        mat4;
     int         idx = _instMatWorldIdx;
     if (idx >= 0) {
-        std::vector<TypedArray> &attrs = getInstancedAttributeBlock()->views;
+        ccstd::vector<TypedArray> &attrs = getInstancedAttributeBlock()->views;
         uploadMat4AsVec4x3(worldMatrix, cc::get<Float32Array>(attrs[idx]), cc::get<Float32Array>(attrs[idx + 1]), cc::get<Float32Array>(attrs[idx + 2]));
     } else if (_localBuffer) {
         mat4ToFloat32Array(worldMatrix, _localData, pipeline::UBOLocal::MAT_WORLD_OFFSET);
@@ -239,7 +243,7 @@ void Model::updateUBOs(uint32_t stamp) {
 
         mat4ToFloat32Array(mat4, _localData, pipeline::UBOLocal::MAT_WORLD_IT_OFFSET);
         _localBuffer->update(_localData.buffer()->getData());
-        const bool enableOcclusionQuery = pipeline::RenderPipeline::getInstance()->isOcclusionQueryEnabled();
+        const bool enableOcclusionQuery = Root::getInstance()->getPipeline()->isOcclusionQueryEnabled();
         if (enableOcclusionQuery) {
             updateWorldBoundUBOs();
         }
@@ -264,8 +268,15 @@ void Model::createBoundingShape(const cc::optional<Vec3> &minPos, const cc::opti
         return;
     }
 
-    _modelBounds = geometry::AABB::fromPoints(minPos.value(), maxPos.value(), new geometry::AABB());
-    _worldBounds = geometry::AABB::fromPoints(minPos.value(), maxPos.value(), new geometry::AABB());
+    if (!_modelBounds) {
+        _modelBounds = new geometry::AABB();
+    }
+    geometry::AABB::fromPoints(minPos.value(), maxPos.value(), _modelBounds);
+
+    if (!_worldBounds) {
+        _worldBounds = new geometry::AABB();
+    }
+    geometry::AABB::fromPoints(minPos.value(), maxPos.value(), _worldBounds);
 }
 
 SubModel *Model::createSubModel() {
@@ -288,6 +299,7 @@ void Model::initSubModel(index_t idx, cc::RenderingSubMesh *subMeshData, Materia
     _subModels[idx]->initialize(subMeshData, mat->getPasses(), getMacroPatches(idx));
     _subModels[idx]->initPlanarShadowShader();
     _subModels[idx]->initPlanarShadowInstanceShader();
+    _subModels[idx]->setOwner(this);
     updateAttributesAndBinding(idx);
 }
 
@@ -316,6 +328,12 @@ void Model::onMacroPatchesStateChanged() {
     }
 }
 
+void Model::onGeometryChanged() {
+    for (SubModel *subModel : _subModels) {
+        subModel->onGeometryChanged();
+    }
+}
+
 void Model::updateLightingmap(Texture2D *texture, const Vec4 &uvParam) {
     vec4ToFloat32Array(uvParam, _localData, pipeline::UBOLocal::LIGHTINGMAP_UVPARAM); //TODO(xwx): toArray not implemented in Math
     _localDataUpdated = true;
@@ -323,7 +341,7 @@ void Model::updateLightingmap(Texture2D *texture, const Vec4 &uvParam) {
     _lightmapUVParam  = uvParam;
 
     if (texture == nullptr) {
-        texture = BuiltinResMgr::getInstance()->get<Texture2D>(std::string("empty-texture"));
+        texture = BuiltinResMgr::getInstance()->get<Texture2D>(ccstd::string("empty-texture"));
     }
     gfx::Texture *gfxTexture = texture->getGFXTexture();
     if (gfxTexture) {
@@ -339,7 +357,7 @@ void Model::updateLightingmap(Texture2D *texture, const Vec4 &uvParam) {
     }
 }
 
-std::vector<IMacroPatch> &Model::getMacroPatches(index_t subModelIndex) {
+ccstd::vector<IMacroPatch> &Model::getMacroPatches(index_t subModelIndex) {
     if (isModelImplementedInJS()) {
         if (!_isCalledFromJS) {
             _eventProcessor.emit(EventTypesToJS::MODEL_GET_MACRO_PATCHES, subModelIndex, &_macroPatches);
@@ -372,7 +390,7 @@ void Model::updateAttributesAndBinding(index_t subModelIndex) {
     updateInstancedAttributes(shader->getAttributes(), subModel->getPasses()[0]);
 }
 
-index_t Model::getInstancedAttributeIndex(const std::string &name) const {
+index_t Model::getInstancedAttributeIndex(const ccstd::string &name) const {
     const auto &attributes = _instanceAttributeBlock.attributes;
     for (index_t i = 0; i < attributes.size(); ++i) {
         if (attributes[i].name == name) {
@@ -382,7 +400,7 @@ index_t Model::getInstancedAttributeIndex(const std::string &name) const {
     return CC_INVALID_INDEX;
 }
 
-void Model::updateInstancedAttributes(const std::vector<gfx::Attribute> &attributes, Pass *pass) {
+void Model::updateInstancedAttributes(const ccstd::vector<gfx::Attribute> &attributes, Pass *pass) {
     if (isModelImplementedInJS()) {
         if (!_isCalledFromJS) {
             _eventProcessor.emit(EventTypesToJS::MODEL_UPDATE_INSTANCED_ATTRIBUTES, attributes, pass);
@@ -477,6 +495,14 @@ void Model::updateWorldBoundDescriptors(index_t subModelIndex, gfx::DescriptorSe
 }
 void Model::setInstancedAttributesViewData(index_t viewIdx, index_t arrIdx, float value) {
     cc::get<Float32Array>(_instanceAttributeBlock.views[viewIdx])[arrIdx] = value;
+}
+
+void Model::updateLocalShadowBias() {
+    _localData[pipeline::UBOLocal::LOCAL_SHADOW_BIAS + 0] = _shadowBias;
+    _localData[pipeline::UBOLocal::LOCAL_SHADOW_BIAS + 1] = _shadowNormalBias;
+    _localData[pipeline::UBOLocal::LOCAL_SHADOW_BIAS + 2] = 0;
+    _localData[pipeline::UBOLocal::LOCAL_SHADOW_BIAS + 3] = 0;
+    _localDataUpdated                                     = true;
 }
 
 } // namespace scene

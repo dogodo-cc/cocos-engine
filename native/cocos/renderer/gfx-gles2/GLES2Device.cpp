@@ -43,6 +43,8 @@
 #include "GLES2Shader.h"
 #include "GLES2Swapchain.h"
 #include "GLES2Texture.h"
+#include "base/memory/Memory.h"
+#include "profiler/Profiler.h"
 #include "states/GLES2Sampler.h"
 
 // when capturing GLES commands (RENDERDOC_HOOK_EGL=1, default value)
@@ -97,8 +99,8 @@ bool GLES2Device::doInit(const DeviceInfo & /*info*/) {
     }
     _bindingMappings.flexibleSet = _bindingMappingInfo.setIndices.back();
 
-    String extStr = reinterpret_cast<const char *>(glGetString(GL_EXTENSIONS));
-    _extensions   = StringUtil::split(extStr, " ");
+    ccstd::string extStr = reinterpret_cast<const char *>(glGetString(GL_EXTENSIONS));
+    _extensions          = StringUtil::split(extStr, " ");
 
     _multithreadedCommandRecording = false;
 
@@ -124,14 +126,14 @@ bool GLES2Device::doInit(const DeviceInfo & /*info*/) {
 
     _features[toNumber(Feature::INSTANCED_ARRAYS)] = _gpuConstantRegistry->useInstancedArrays;
 
-    String fbfLevelStr = "NONE";
+    ccstd::string fbfLevelStr = "NONE";
     // PVRVFrame has issues on their support
 #if CC_PLATFORM != CC_PLATFORM_WINDOWS
     if (checkExtension("framebuffer_fetch")) {
-        String nonCoherent = "framebuffer_fetch_non";
+        ccstd::string nonCoherent = "framebuffer_fetch_non";
 
         auto it = std::find_if(_extensions.begin(), _extensions.end(), [&nonCoherent](auto &ext) {
-            return ext.find(nonCoherent) != String::npos;
+            return ext.find(nonCoherent) != ccstd::string::npos;
         });
 
         if (it != _extensions.end()) {
@@ -162,7 +164,7 @@ bool GLES2Device::doInit(const DeviceInfo & /*info*/) {
     }
 #endif
 
-    String compressedFmts;
+    ccstd::string compressedFmts;
     if (getFormatFeatures(Format::ETC_RGB8) != FormatFeature::NONE) {
         compressedFmts += "etc1 ";
     }
@@ -241,6 +243,7 @@ void GLES2Device::acquire(Swapchain *const *swapchains, uint32_t count) {
 }
 
 void GLES2Device::present() {
+    CC_PROFILE(GLES2DevicePresent);
     auto *queue   = static_cast<GLES2Queue *>(_queue);
     _numDrawCalls = queue->_numDrawCalls;
     _numInstances = queue->_numInstances;
@@ -496,10 +499,12 @@ Sampler *GLES2Device::createSampler(const SamplerInfo &info) {
 }
 
 void GLES2Device::copyBuffersToTexture(const uint8_t *const *buffers, Texture *dst, const BufferTextureCopy *regions, uint32_t count) {
+    CC_PROFILE(GLES2DeviceCopyBuffersToTexture);
     cmdFuncGLES2CopyBuffersToTexture(this, buffers, static_cast<GLES2Texture *>(dst)->gpuTexture(), regions, count);
 }
 
 void GLES2Device::copyTextureToBuffers(Texture *src, uint8_t *const *buffers, const BufferTextureCopy *region, uint32_t count) {
+    CC_PROFILE(GLES2DeviceCopyTextureToBuffers);
     cmdFuncGLES2CopyTextureToBuffers(this, static_cast<GLES2Texture *>(src)->gpuTexture(), buffers, region, count);
 }
 

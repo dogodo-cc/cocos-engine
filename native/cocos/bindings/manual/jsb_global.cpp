@@ -52,15 +52,15 @@ using namespace cc; //NOLINT
 
 static LegacyThreadPool *gThreadPool = nullptr;
 
-static std::shared_ptr<cc::network::Downloader>                                               gLocalDownloader = nullptr;
-static std::map<std::string, std::function<void(const std::string &, unsigned char *, uint)>> gLocalDownloaderHandlers;
-static uint64_t                                                                               gLocalDownloaderTaskId = 1000000;
+static std::shared_ptr<cc::network::Downloader>                                                     gLocalDownloader = nullptr;
+static ccstd::unordered_map<ccstd::string, std::function<void(const ccstd::string &, unsigned char *, uint)>> gLocalDownloaderHandlers;
+static uint64_t                                                                                     gLocalDownloaderTaskId = 1000000;
 
 static cc::network::Downloader *localDownloader() {
     if (!gLocalDownloader) {
         gLocalDownloader                    = std::make_shared<cc::network::Downloader>();
-        gLocalDownloader->onDataTaskSuccess = [=](const cc::network::DownloadTask & task,
-                                                  const std::vector<unsigned char> &data) {
+        gLocalDownloader->onDataTaskSuccess = [=](const cc::network::DownloadTask &   task,
+                                                  const ccstd::vector<unsigned char> &data) {
             if (data.empty()) {
                 SE_REPORT_ERROR("Getting image from (%s) failed!", task.requestURL.c_str());
                 return;
@@ -82,7 +82,7 @@ static cc::network::Downloader *localDownloader() {
         gLocalDownloader->onTaskError = [=](const cc::network::DownloadTask &task,
                                             int                              errorCode,         //NOLINT
                                             int                              errorCodeInternal, //NOLINT
-                                            const std::string &              errorStr) {                      //NOLINT
+                                            const ccstd::string &            errorStr) {                    //NOLINT
             SE_REPORT_ERROR("Getting image from (%s) failed!", task.requestURL.c_str());
             gLocalDownloaderHandlers.erase(task.identifier);
         };
@@ -90,11 +90,11 @@ static cc::network::Downloader *localDownloader() {
     return gLocalDownloader.get();
 }
 
-static void localDownloaderCreateTask(const std::string &url, const std::function<void(const std::string &, unsigned char *, int)> &callback) {
+static void localDownloaderCreateTask(const ccstd::string &url, const std::function<void(const ccstd::string &, unsigned char *, int)> &callback) {
     std::stringstream ss;
     ss << "jsb_loadimage_" << (gLocalDownloaderTaskId++);
-    std::string key  = ss.str();
-    auto        task = localDownloader()->createDownloadDataTask(url, key);
+    ccstd::string key  = ss.str();
+    auto          task = localDownloader()->createDownloadDataTask(url, key);
     gLocalDownloaderHandlers.emplace(std::make_pair(task->identifier, callback));
 }
 
@@ -121,7 +121,7 @@ bool jsb_set_extend_property(const char *ns, const char *clsName) { //NOLINT
 
 namespace {
 
-std::unordered_map<std::string, se::Value> gModuleCache;
+ccstd::unordered_map<ccstd::string, se::Value> gModuleCache;
 
 static bool require(se::State &s) { //NOLINT
     const auto &args = s.args();
@@ -133,23 +133,23 @@ static bool require(se::State &s) { //NOLINT
 }
 SE_BIND_FUNC(require)
 
-static bool doModuleRequire(const std::string &path, se::Value *ret, const std::string &prevScriptFileDir) { //NOLINT
+static bool doModuleRequire(const ccstd::string &path, se::Value *ret, const ccstd::string &prevScriptFileDir) { //NOLINT
     se::AutoHandleScope hs;
     assert(!path.empty());
 
     const auto &fileOperationDelegate = se::ScriptEngine::getInstance()->getFileOperationDelegate();
     assert(fileOperationDelegate.isValid());
 
-    std::string fullPath;
+    ccstd::string fullPath;
 
-    std::string pathWithSuffix = path;
+    ccstd::string pathWithSuffix = path;
     if (pathWithSuffix.rfind(".js") != (pathWithSuffix.length() - 3)) {
         pathWithSuffix += ".js";
     }
-    std::string scriptBuffer = fileOperationDelegate.onGetStringFromFile(pathWithSuffix);
+    ccstd::string scriptBuffer = fileOperationDelegate.onGetStringFromFile(pathWithSuffix);
 
     if (scriptBuffer.empty() && !prevScriptFileDir.empty()) {
-        std::string secondPath = prevScriptFileDir;
+        ccstd::string secondPath = prevScriptFileDir;
         if (secondPath[secondPath.length() - 1] != '/') {
             secondPath += "/";
         }
@@ -180,7 +180,7 @@ static bool doModuleRequire(const std::string &path, se::Value *ret, const std::
             //                printf("Found cache: %s, value: %d\n", fullPath.c_str(), (int)ret->getType());
             return true;
         }
-        std::string currentScriptFileDir = FileUtils::getInstance()->getFileDir(fullPath);
+        ccstd::string currentScriptFileDir = FileUtils::getInstance()->getFileDir(fullPath);
 
         // Add closure for evalutate the script
         char prefix[]    = "(function(currentScriptDir){ window.module = window.module || {}; var exports = window.module.exports = {}; ";
@@ -195,19 +195,19 @@ static bool doModuleRequire(const std::string &path, se::Value *ret, const std::
         //            fclose(fp);
 
 #if CC_PLATFORM == CC_PLATFORM_MAC_OSX || CC_PLATFORM == CC_PLATFORM_MAC_IOS
-        std::string reletivePath = fullPath;
+        ccstd::string reletivePath = fullPath;
     #if CC_PLATFORM == CC_PLATFORM_MAC_OSX
-        const std::string reletivePathKey = "/Contents/Resources";
+        const ccstd::string reletivePathKey = "/Contents/Resources";
     #else
-        const std::string reletivePathKey = ".app";
+        const ccstd::string reletivePathKey = ".app";
     #endif
 
         size_t pos = reletivePath.find(reletivePathKey);
-        if (pos != std::string::npos) {
+        if (pos != ccstd::string::npos) {
             reletivePath = reletivePath.substr(pos + reletivePathKey.length() + 1);
         }
 #else
-        const std::string &reletivePath = fullPath;
+        const ccstd::string &reletivePath = fullPath;
 #endif
 
         auto      se      = se::ScriptEngine::getInstance();
@@ -249,12 +249,12 @@ static bool moduleRequire(se::State &s) { //NOLINT
 SE_BIND_FUNC(moduleRequire)
 } // namespace
 
-bool jsb_run_script(const std::string &filePath, se::Value *rval /* = nullptr */) { //NOLINT
+bool jsb_run_script(const ccstd::string &filePath, se::Value *rval /* = nullptr */) { //NOLINT
     se::AutoHandleScope hs;
     return se::ScriptEngine::getInstance()->runScript(filePath, rval);
 }
 
-bool jsb_run_script_module(const std::string &filePath, se::Value *rval /* = nullptr */) { //NOLINT
+bool jsb_run_script_module(const ccstd::string &filePath, se::Value *rval /* = nullptr */) { //NOLINT
     return doModuleRequire(filePath, rval, "");
 }
 
@@ -272,7 +272,7 @@ static bool jsc_dumpNativePtrToSeObjectMap(se::State &s) { //NOLINT
         void *      ptr;
     };
 
-    std::vector<NamePtrStruct> namePtrArray;
+    ccstd::vector<NamePtrStruct> namePtrArray;
 
     for (const auto &e : se::NativePtrToObjectMap::instance()) {
         se::Object *jsobj = e.second;
@@ -284,9 +284,9 @@ static bool jsc_dumpNativePtrToSeObjectMap(se::State &s) { //NOLINT
     }
 
     std::sort(namePtrArray.begin(), namePtrArray.end(), [](const NamePtrStruct &a, const NamePtrStruct &b) -> bool {
-        std::string left  = a.name;
-        std::string right = b.name;
-        for (std::string::const_iterator lit = left.begin(), rit = right.begin(); lit != left.end() && rit != right.end(); ++lit, ++rit) {
+        ccstd::string left  = a.name;
+        ccstd::string right = b.name;
+        for (ccstd::string::const_iterator lit = left.begin(), rit = right.begin(); lit != left.end() && rit != right.end(); ++lit, ++rit) {
             if (::tolower(*lit) < ::tolower(*rit)) {
                 return true;
             }
@@ -348,7 +348,7 @@ SE_BIND_FUNC(JSBCore_os)
 static bool JSBCore_getCurrentLanguage(se::State &s) { //NOLINT
     ISystem *systemIntf = CC_GET_PLATFORM_INTERFACE(ISystem);
     CCASSERT(systemIntf != nullptr, "System interface does not exist");
-    std::string languageStr = systemIntf->getCurrentLanguageToString();
+    ccstd::string languageStr = systemIntf->getCurrentLanguageToString();
     s.rval().setString(languageStr);
     return true;
 }
@@ -357,7 +357,7 @@ SE_BIND_FUNC(JSBCore_getCurrentLanguage)
 static bool JSBCore_getCurrentLanguageCode(se::State &s) { //NOLINT
     ISystem *systemIntf = CC_GET_PLATFORM_INTERFACE(ISystem);
     CCASSERT(systemIntf != nullptr, "System interface does not exist");
-    std::string language = systemIntf->getCurrentLanguageCode();
+    ccstd::string language = systemIntf->getCurrentLanguageCode();
     s.rval().setString(language);
     return true;
 }
@@ -366,7 +366,7 @@ SE_BIND_FUNC(JSBCore_getCurrentLanguageCode)
 static bool JSB_getOSVersion(se::State &s) { //NOLINT
     ISystem *systemIntf = CC_GET_PLATFORM_INTERFACE(ISystem);
     CCASSERT(systemIntf != nullptr, "System interface does not exist");
-    std::string systemVersion = systemIntf->getSystemVersion();
+    ccstd::string systemVersion = systemIntf->getSystemVersion();
     s.rval().setString(systemVersion);
     return true;
 }
@@ -420,9 +420,9 @@ static bool JSB_saveByteCode(se::State &s) { //NOLINT
     const auto &args = s.args();
     int         argc = static_cast<int>(args.size());
     SE_PRECONDITION2(argc == 2, false, "Invalid number of arguments");
-    bool        ok = true;
-    std::string srcfile;
-    std::string dstfile;
+    bool          ok = true;
+    ccstd::string srcfile;
+    ccstd::string dstfile;
     ok &= sevalue_to_native(args[0], &srcfile);
     ok &= sevalue_to_native(args[1], &dstfile);
     SE_PRECONDITION2(ok, false, "Error processing arguments");
@@ -546,7 +546,7 @@ struct ImageInfo *createImageInfo(Image *img) {
 }
 } // namespace
 
-bool jsb_global_load_image(const std::string &path, const se::Value &callbackVal) { //NOLINT(readability-identifier-naming)
+bool jsb_global_load_image(const ccstd::string &path, const se::Value &callbackVal) { //NOLINT(readability-identifier-naming)
     if (path.empty()) {
         se::ValueArray seArgs;
         callbackVal.toObject()->call(seArgs, nullptr);
@@ -555,7 +555,7 @@ bool jsb_global_load_image(const std::string &path, const se::Value &callbackVal
 
     std::shared_ptr<se::Value> callbackPtr = std::make_shared<se::Value>(callbackVal);
 
-    auto initImageFunc = [path, callbackPtr](const std::string &fullPath, unsigned char *imageData, int imageBytes) {
+    auto initImageFunc = [path, callbackPtr](const ccstd::string &fullPath, unsigned char *imageData, int imageBytes) {
         auto *img = new (std::nothrow) Image();
 
         gThreadPool->pushTask([=](int /*tid*/) {
@@ -600,11 +600,11 @@ bool jsb_global_load_image(const std::string &path, const se::Value &callbackVal
             });
         });
     };
-    size_t pos = std::string::npos;
+    size_t pos = ccstd::string::npos;
     if (path.find("http://") == 0 || path.find("https://") == 0) {
         localDownloaderCreateTask(path, initImageFunc);
 
-    } else if (path.find("data:") == 0 && (pos = path.find("base64,")) != std::string::npos) {
+    } else if (path.find("data:") == 0 && (pos = path.find("base64,")) != ccstd::string::npos) {
         int            imageBytes   = 0;
         unsigned char *imageData    = nullptr;
         size_t         dataStartPos = pos + strlen("base64,");
@@ -617,7 +617,7 @@ bool jsb_global_load_image(const std::string &path, const se::Value &callbackVal
         }
         initImageFunc("", imageData, imageBytes);
     } else {
-        std::string fullPath(FileUtils::getInstance()->fullPathForFilename(path));
+        ccstd::string fullPath(FileUtils::getInstance()->fullPathForFilename(path));
         if (0 == path.find("file://")) {
             fullPath = FileUtils::getInstance()->fullPathForFilename(path.substr(strlen("file://")));
         }
@@ -636,7 +636,7 @@ static bool js_loadImage(se::State &s) { //NOLINT
     size_t         argc = args.size();
     CC_UNUSED bool ok   = true;
     if (argc == 2) {
-        std::string path;
+        ccstd::string path;
         ok &= sevalue_to_native(args[0], &path);
         SE_PRECONDITION2(ok, false, "js_loadImage : Error processing arguments");
 
@@ -671,7 +671,7 @@ static bool JSB_openURL(se::State &s) { //NOLINT
     size_t         argc = args.size();
     CC_UNUSED bool ok   = true;
     if (argc > 0) {
-        std::string url;
+        ccstd::string url;
         ok = sevalue_to_native(args[0], &url);
         SE_PRECONDITION2(ok, false, "url is invalid!");
         ISystem *systemIntf = CC_GET_PLATFORM_INTERFACE(ISystem);
@@ -690,7 +690,7 @@ static bool JSB_copyTextToClipboard(se::State &s) { //NOLINT
     size_t         argc = args.size();
     CC_UNUSED bool ok   = true;
     if (argc > 0) {
-        std::string text;
+        ccstd::string text;
         ok = sevalue_to_native(args[0], &text);
         SE_PRECONDITION2(ok, false, "text is invalid!");
         ISystemWindow *systemWindowIntf = CC_GET_PLATFORM_INTERFACE(ISystemWindow);
@@ -793,9 +793,61 @@ static bool JSB_showInputBox(se::State &s) { //NOLINT
                 showInfo.height = tmp.toInt32();
             }
         }
-
+        if (obj->getProperty("fontSize", &tmp)) {
+            SE_PRECONDITION2(tmp.isNumber(), false, "fontSize is invalid!");
+            if (!tmp.isUndefined()) {
+                showInfo.fontSize = tmp.toNumber();
+            }
+        }
+        if (obj->getProperty("fontColor", &tmp)) {
+            SE_PRECONDITION2(tmp.isNumber(), false, "fontColor is invalid!");
+            if (!tmp.isUndefined()) {
+                showInfo.fontColor = tmp.toNumber();
+            }
+        }
+        if (obj->getProperty("isBold", &tmp)) {
+            SE_PRECONDITION2(tmp.isBoolean(), false, "isBold is invalid!");
+            if (!tmp.isUndefined()) {
+                showInfo.isBold = tmp.toBoolean();
+            }
+        }
+        if (obj->getProperty("isItalic", &tmp)) {
+            SE_PRECONDITION2(tmp.isBoolean(), false, "isItalic is invalid!");
+            if (!tmp.isUndefined()) {
+                showInfo.isItalic = tmp.toBoolean();
+            }
+        }
+        if (obj->getProperty("isUnderline", &tmp)) {
+            SE_PRECONDITION2(tmp.isBoolean(), false, "isUnderline is invalid!");
+            if (!tmp.isUndefined()) {
+                showInfo.isUnderline = tmp.toBoolean();
+            }
+        }
+        if (obj->getProperty("underlineColor", &tmp)) {
+            SE_PRECONDITION2(tmp.isNumber(), false, "underlinrColor is invalid!");
+            if (!tmp.isUndefined()) {
+                showInfo.underlineColor = tmp.toNumber();
+            }
+        }
+        if (obj->getProperty("backColor", &tmp)) {
+            SE_PRECONDITION2(tmp.isNumber(), false, "backColor is invalid!");
+            if (!tmp.isUndefined()) {
+                showInfo.backColor = tmp.toNumber();
+            }
+        }
+        if (obj->getProperty("backgroundColor", &tmp)) {
+            SE_PRECONDITION2(tmp.isNumber(), false, "backgroundColor is invalid!");
+            if (!tmp.isUndefined()) {
+                showInfo.backgroundColor = tmp.toNumber();
+            }
+        }
+        if (obj->getProperty("textAlignment", &tmp)) {
+            SE_PRECONDITION2(tmp.isNumber(), false, "textAlignment is invalid!");
+            if (!tmp.isUndefined()) {
+                showInfo.textAlignment = tmp.toNumber();
+            }
+        }
         EditBox::show(showInfo);
-
         return true;
     }
 
@@ -812,22 +864,27 @@ SE_BIND_FUNC(JSB_hideInputBox)
 
 #endif
 
-static bool jsb_createExternalArrayBuffer(se::State& s) {
-    const auto& args = s.args();
-    size_t argc = args.size();
-    CC_UNUSED bool ok = true;
+static bool jsb_createExternalArrayBuffer(se::State &s) {
+    const auto &   args = s.args();
+    size_t         argc = args.size();
+    CC_UNUSED bool ok   = true;
     if (argc == 1) {
         uint32_t byteLength{0};
         ok &= sevalue_to_native(args[0], &byteLength, s.thisObject());
         SE_PRECONDITION2(ok, false, "jsb_createExternalArrayBuffer : Error processing arguments");
         if (byteLength > 0) {
+// NOTE: Currently V8 use shared_ptr which has different abi on win64-debug and win64-release
+#if CC_PLATFORM == CC_PLATFORM_WINDOWS && SCRIPT_ENGINE_TYPE == SCRIPT_ENGINE_V8
+            se::HandleObject arrayBuffer{se::Object::createArrayBufferObject(nullptr, byteLength)};
+#else
             void *buffer = malloc(byteLength);
             memset(buffer, 0x00, byteLength);
-            se::HandleObject arrayBuffer{se::Object::createExternalArrayBufferObject(buffer, byteLength, [](void* contents, size_t /*byteLength*/, void*/* userData */){
+            se::HandleObject arrayBuffer{se::Object::createExternalArrayBufferObject(buffer, byteLength, [](void *contents, size_t /*byteLength*/, void * /*userData*/) {
                 if (contents != nullptr) {
                     free(contents);
                 }
             })};
+#endif // CC_PLATFORM == CC_PLATFORM_WINDOWS
             s.rval().setObject(arrayBuffer);
         } else {
             s.rval().setNull();
@@ -838,6 +895,282 @@ static bool jsb_createExternalArrayBuffer(se::State& s) {
     return false;
 }
 SE_BIND_FUNC(jsb_createExternalArrayBuffer)
+
+static bool JSB_zipUtils_inflateMemory(se::State &s) { //NOLINT
+    const auto &   args = s.args();
+    size_t         argc = args.size();
+    CC_UNUSED bool ok   = true;
+    if (argc > 0) {
+        unsigned char *arg0 = nullptr;
+        size_t         arg1 = 0;
+        if (args[0].isString()) {
+            const ccstd::string &str = args[0].toString();
+            arg0                     = const_cast<unsigned char *>(reinterpret_cast<const unsigned char *>(str.c_str()));
+            arg1                     = str.size();
+        } else if (args[0].isObject()) {
+            se::Object *obj = args[0].toObject();
+            if (obj->isArrayBuffer()) {
+                ok &= obj->getArrayBufferData(&arg0, &arg1);
+                SE_PRECONDITION2(ok, false, "getArrayBufferData failed!");
+            } else if (obj->isTypedArray()) {
+                ok &= obj->getTypedArrayData(&arg0, &arg1);
+                SE_PRECONDITION2(ok, false, "getTypedArrayData failed!");
+            } else {
+                ok = false;
+            }
+        } else {
+            ok = false;
+        }
+        SE_PRECONDITION2(ok, false, "args[0] is not in type of string | ArrayBuffer | TypedArray");
+        unsigned char *arg2 = nullptr;
+        int32_t        len  = 0;
+        if (argc == 1) {
+            len = ZipUtils::inflateMemory(arg0, static_cast<ssize_t>(arg1), &arg2);
+        } else if (argc == 2) {
+            SE_PRECONDITION2(args[1].isNumber(), false, "outLengthHint is invalid!");
+            int32_t outLengthHint = 0;
+            if (!args[1].isUndefined()) {
+                outLengthHint = args[1].toInt32();
+                len           = ZipUtils::inflateMemoryWithHint(arg0, static_cast<ssize_t>(arg1), &arg2, outLengthHint);
+            } else {
+                ok = false;
+            }
+        } else {
+            ok = false;
+        }
+        SE_PRECONDITION2(ok, false, "args number is not as expected!");
+        se::HandleObject seObj(se::Object::createArrayBufferObject(arg2, len));
+        if (!seObj.isEmpty() && len > 0) {
+            s.rval().setObject(seObj);
+        } else {
+            s.rval().setNull();
+        }
+        free(arg2);
+        return true;
+    }
+    SE_REPORT_ERROR("wrong number of arguments: %d, was expecting %d", (int)argc, 1);
+    return false;
+}
+SE_BIND_FUNC(JSB_zipUtils_inflateMemory)
+
+static bool JSB_zipUtils_inflateGZipFile(se::State &s) { //NOLINT
+    const auto &args = s.args();
+    size_t      argc = args.size();
+    if (argc == 1) {
+        SE_PRECONDITION2(args[0].isString(), false, "path is invalid!");
+        ccstd::string    arg0 = args[0].toString();
+        unsigned char *  arg1 = nullptr;
+        int32_t          len  = ZipUtils::inflateGZipFile(arg0.c_str(), &arg1);
+        se::HandleObject seObj(se::Object::createArrayBufferObject(arg1, len));
+        if (!seObj.isEmpty() && len > 0) {
+            s.rval().setObject(seObj);
+        } else {
+            s.rval().setNull();
+        }
+        free(arg1);
+        return true;
+    }
+    SE_REPORT_ERROR("wrong number of arguments: %d, was expecting %d", (int)argc, 1);
+    return false;
+}
+SE_BIND_FUNC(JSB_zipUtils_inflateGZipFile)
+
+static bool JSB_zipUtils_isGZipFile(se::State &s) { //NOLINT
+    const auto &args = s.args();
+    size_t      argc = args.size();
+    if (argc == 1) {
+        SE_PRECONDITION2(args[0].isString(), false, "path is invalid!");
+        ccstd::string arg0 = args[0].toString();
+        bool          flag = ZipUtils::isGZipFile(arg0.c_str());
+        s.rval().setBoolean(flag);
+        return true;
+    }
+    SE_REPORT_ERROR("wrong number of arguments: %d, was expecting %d", (int)argc, 1);
+    return false;
+}
+SE_BIND_FUNC(JSB_zipUtils_isGZipFile)
+
+static bool JSB_zipUtils_isGZipBuffer(se::State &s) { //NOLINT
+    const auto &   args = s.args();
+    size_t         argc = args.size();
+    CC_UNUSED bool ok   = true;
+    if (argc == 1) {
+        unsigned char *arg0 = nullptr;
+        size_t         arg1 = 0;
+        if (args[0].isString()) {
+            const ccstd::string &str = args[0].toString();
+            arg0                     = const_cast<unsigned char *>(reinterpret_cast<const unsigned char *>(str.c_str()));
+            arg1                     = str.size();
+        } else if (args[0].isObject()) {
+            se::Object *obj = args[0].toObject();
+            if (obj->isArrayBuffer()) {
+                ok &= obj->getArrayBufferData(&arg0, &arg1);
+                SE_PRECONDITION2(ok, false, "getArrayBufferData failed!");
+            } else if (obj->isTypedArray()) {
+                ok &= obj->getTypedArrayData(&arg0, &arg1);
+                SE_PRECONDITION2(ok, false, "getTypedArrayData failed!");
+            } else {
+                ok = false;
+            }
+        } else {
+            ok = false;
+        }
+        SE_PRECONDITION2(ok, false, "args[0] is not in type of string | ArrayBuffer | TypedArray");
+        bool flag = ZipUtils::isGZipBuffer(arg0, static_cast<ssize_t>(arg1));
+        s.rval().setBoolean(flag);
+        return true;
+    }
+    SE_REPORT_ERROR("wrong number of arguments: %d, was expecting %d", (int)argc, 1);
+    return false;
+}
+SE_BIND_FUNC(JSB_zipUtils_isGZipBuffer)
+
+static bool JSB_zipUtils_inflateCCZFile(se::State &s) { //NOLINT
+    const auto &args = s.args();
+    size_t      argc = args.size();
+    if (argc == 1) {
+        SE_PRECONDITION2(args[0].isString(), false, "path is invalid!");
+        ccstd::string    arg0 = args[0].toString();
+        unsigned char *  arg1 = nullptr;
+        int32_t          len  = ZipUtils::inflateCCZFile(arg0.c_str(), &arg1);
+        se::HandleObject seObj(se::Object::createArrayBufferObject(arg1, len));
+        if (!seObj.isEmpty() && len > 0) {
+            s.rval().setObject(seObj);
+        } else {
+            s.rval().setNull();
+        }
+        free(arg1);
+        return true;
+    }
+    SE_REPORT_ERROR("wrong number of arguments: %d, was expecting %d", (int)argc, 1);
+    return false;
+}
+SE_BIND_FUNC(JSB_zipUtils_inflateCCZFile)
+
+static bool JSB_zipUtils_inflateCCZBuffer(se::State &s) { //NOLINT
+    const auto &   args = s.args();
+    size_t         argc = args.size();
+    CC_UNUSED bool ok   = true;
+    if (argc == 1) {
+        unsigned char *arg0 = nullptr;
+        size_t         arg1 = 0;
+        if (args[0].isString()) {
+            const ccstd::string &str = args[0].toString();
+            arg0                     = const_cast<unsigned char *>(reinterpret_cast<const unsigned char *>(str.c_str()));
+            arg1                     = str.size();
+        } else if (args[0].isObject()) {
+            se::Object *obj = args[0].toObject();
+            if (obj->isArrayBuffer()) {
+                ok &= obj->getArrayBufferData(&arg0, &arg1);
+                SE_PRECONDITION2(ok, false, "getArrayBufferData failed!");
+            } else if (obj->isTypedArray()) {
+                ok &= obj->getTypedArrayData(&arg0, &arg1);
+                SE_PRECONDITION2(ok, false, "getTypedArrayData failed!");
+            } else {
+                ok = false;
+            }
+        } else {
+            ok = false;
+        }
+        SE_PRECONDITION2(ok, false, "args[0] is not in type of string | ArrayBuffer | TypedArray");
+        unsigned char *  arg2 = nullptr;
+        int32_t          len  = ZipUtils::inflateCCZBuffer(arg0, static_cast<ssize_t>(arg1), &arg2);
+        se::HandleObject seObj(se::Object::createArrayBufferObject(arg2, len));
+        if (!seObj.isEmpty() && len > 0) {
+            s.rval().setObject(seObj);
+        } else {
+            s.rval().setNull();
+        }
+        free(arg2);
+        return true;
+    }
+    SE_REPORT_ERROR("wrong number of arguments: %d, was expecting %d", (int)argc, 1);
+    return false;
+}
+SE_BIND_FUNC(JSB_zipUtils_inflateCCZBuffer)
+
+static bool JSB_zipUtils_isCCZFile(se::State &s) { //NOLINT
+    const auto &args = s.args();
+    size_t      argc = args.size();
+    if (argc == 1) {
+        ccstd::string arg0;
+        SE_PRECONDITION2(args[0].isString(), false, "path is invalid!");
+        arg0      = args[0].toString();
+        bool flag = ZipUtils::isCCZFile(arg0.c_str());
+        s.rval().setBoolean(flag);
+        return true;
+    }
+    SE_REPORT_ERROR("wrong number of arguments: %d, was expecting %d", (int)argc, 1);
+    return false;
+}
+SE_BIND_FUNC(JSB_zipUtils_isCCZFile)
+
+static bool JSB_zipUtils_isCCZBuffer(se::State &s) { //NOLINT
+    const auto &   args = s.args();
+    size_t         argc = args.size();
+    CC_UNUSED bool ok   = true;
+    if (argc == 1) {
+        unsigned char *arg0 = nullptr;
+        size_t         arg1 = 0;
+        if (args[0].isString()) {
+            const ccstd::string &str = args[0].toString();
+            arg0                     = const_cast<unsigned char *>(reinterpret_cast<const unsigned char *>(str.c_str()));
+            arg1                     = str.size();
+        } else if (args[0].isObject()) {
+            se::Object *obj = args[0].toObject();
+            if (obj->isArrayBuffer()) {
+                ok &= obj->getArrayBufferData(&arg0, &arg1);
+                SE_PRECONDITION2(ok, false, "getArrayBufferData failed!");
+            } else if (obj->isTypedArray()) {
+                ok &= obj->getTypedArrayData(&arg0, &arg1);
+                SE_PRECONDITION2(ok, false, "getTypedArrayData failed!");
+            } else {
+                ok = false;
+            }
+        } else {
+            ok = false;
+        }
+        SE_PRECONDITION2(ok, false, "args[0] is not in type of string | ArrayBuffer | TypedArray");
+        bool flag = ZipUtils::isCCZBuffer(arg0, static_cast<ssize_t>(arg1));
+        s.rval().setBoolean(flag);
+        return true;
+    }
+    SE_REPORT_ERROR("wrong number of arguments: %d, was expecting %d", (int)argc, 1);
+    return false;
+}
+SE_BIND_FUNC(JSB_zipUtils_isCCZBuffer)
+
+static bool JSB_zipUtils_setPvrEncryptionKeyPart(se::State &s) { //NOLINT
+    const auto &args = s.args();
+    size_t      argc = args.size();
+    if (argc == 2) {
+        SE_PRECONDITION2(args[0].isNumber() && args[1].isNumber(), false, "args is not as expected");
+        int32_t  arg0 = args[0].toInt32();
+        uint32_t arg1 = args[1].toUint32();
+        ZipUtils::setPvrEncryptionKeyPart(arg0, arg1);
+        return true;
+    }
+    SE_REPORT_ERROR("wrong number of arguments: %d, was expecting %d", (int)argc, 2);
+    return false;
+}
+SE_BIND_FUNC(JSB_zipUtils_setPvrEncryptionKeyPart)
+
+static bool JSB_zipUtils_setPvrEncryptionKey(se::State &s) { //NOLINT
+    const auto &args = s.args();
+    size_t      argc = args.size();
+    if (argc == 4) {
+        SE_PRECONDITION2(args[0].isNumber() && args[1].isNumber(), false, "args is not as expected");
+        uint32_t arg0 = args[0].toUint32();
+        uint32_t arg1 = args[1].toUint32();
+        uint32_t arg2 = args[2].toUint32();
+        uint32_t arg3 = args[3].toUint32();
+        ZipUtils::setPvrEncryptionKey(arg0, arg1, arg2, arg3);
+        return true;
+    }
+    SE_REPORT_ERROR("wrong number of arguments: %d, was expecting %d", (int)argc, 4);
+    return false;
+}
+SE_BIND_FUNC(JSB_zipUtils_setPvrEncryptionKey)
 
 bool jsb_register_global_variables(se::Object *global) { //NOLINT
     gThreadPool = LegacyThreadPool::newFixedThreadPool(3);
@@ -862,6 +1195,20 @@ bool jsb_register_global_variables(se::Object *global) { //NOLINT
     __jsbObj->defineFunction("setCursorEnabled", _SE(JSB_setCursorEnabled));
     __jsbObj->defineFunction("saveByteCode", _SE(JSB_saveByteCode));
     __jsbObj->defineFunction("createExternalArrayBuffer", _SE(jsb_createExternalArrayBuffer));
+
+    se::HandleObject zipUtils(se::Object::createPlainObject());
+    zipUtils->defineFunction("inflateMemory", _SE(JSB_zipUtils_inflateMemory));
+    zipUtils->defineFunction("inflateGZipFile", _SE(JSB_zipUtils_inflateGZipFile));
+    zipUtils->defineFunction("isGZipFile", _SE(JSB_zipUtils_isGZipFile));
+    zipUtils->defineFunction("isGZipBuffer", _SE(JSB_zipUtils_isGZipBuffer));
+    zipUtils->defineFunction("inflateCCZFile", _SE(JSB_zipUtils_inflateCCZFile));
+    zipUtils->defineFunction("inflateCCZBuffer", _SE(JSB_zipUtils_inflateCCZBuffer));
+    zipUtils->defineFunction("isCCZFile", _SE(JSB_zipUtils_isCCZFile));
+    zipUtils->defineFunction("isCCZBuffer", _SE(JSB_zipUtils_isCCZBuffer));
+    zipUtils->defineFunction("setPvrEncryptionKeyPart", _SE(JSB_zipUtils_setPvrEncryptionKeyPart));
+    zipUtils->defineFunction("setPvrEncryptionKey", _SE(JSB_zipUtils_setPvrEncryptionKey));
+
+    __jsbObj->setProperty("zipUtils", se::Value(zipUtils));
 
     global->defineFunction("__getPlatform", _SE(JSBCore_platform));
     global->defineFunction("__getOS", _SE(JSBCore_os));

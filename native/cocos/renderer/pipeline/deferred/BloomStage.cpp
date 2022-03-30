@@ -40,16 +40,17 @@
 #include "gfx-base/states/GFXSampler.h"
 #include "pipeline/Define.h"
 #include "pipeline/UIPhase.h"
+#include "profiler/Profiler.h"
 #include "renderer/pipeline/deferred/DeferredPipelineSceneData.h"
 #include "scene/Camera.h"
+#include "scene/Pass.h"
 #include "scene/RenderScene.h"
 #include "scene/SubModel.h"
-#include "scene/Pass.h"
 
 namespace cc {
 namespace pipeline {
 namespace {
-const String BLOOM_STAGE_NAME = "BloomStage";
+const ccstd::string BLOOM_STAGE_NAME = "BloomStage";
 
 framegraph::StringHandle prefilterTexHandle = framegraph::FrameGraph::stringToHandle("prefilterTex");
 framegraph::StringHandle downsampleTexHandles[MAX_BLOOM_FILTER_PASS_NUM];
@@ -62,18 +63,18 @@ framegraph::StringHandle combinePassHandle;
 void initStrHandle() {
     prefilterPassHandle = framegraph::FrameGraph::stringToHandle("bloomPrefilterPass");
 
-    std::string tmp;
+    ccstd::string tmp;
     for (int i = 0; i < MAX_BLOOM_FILTER_PASS_NUM; ++i) {
-        tmp                      = std::string("bloomDownsamplePass") + std::to_string(i);
+        tmp                      = ccstd::string("bloomDownsamplePass") + std::to_string(i);
         downsamplePassHandles[i] = framegraph::FrameGraph::stringToHandle(tmp.c_str());
 
-        tmp                     = std::string("bloomDownsampleTex") + std::to_string(i);
+        tmp                     = ccstd::string("bloomDownsampleTex") + std::to_string(i);
         downsampleTexHandles[i] = framegraph::FrameGraph::stringToHandle(tmp.c_str());
 
-        tmp                    = std::string("bloomUpsamplePass") + std::to_string(i);
+        tmp                    = ccstd::string("bloomUpsamplePass") + std::to_string(i);
         upsamplePassHandles[i] = framegraph::FrameGraph::stringToHandle(tmp.c_str());
 
-        tmp                   = std::string("bloomUpsampleTex") + std::to_string(i);
+        tmp                   = ccstd::string("bloomUpsampleTex") + std::to_string(i);
         upsampleTexHandles[i] = framegraph::FrameGraph::stringToHandle(tmp.c_str());
     }
 
@@ -115,6 +116,7 @@ void BloomStage::destroy() {
 }
 
 void BloomStage::render(scene::Camera *camera) {
+    CC_PROFILE(BloomStageRender);
     auto *pipeline = _pipeline;
     CC_ASSERT(pipeline != nullptr);
     if (!pipeline->isBloomEnabled() || pipeline->getPipelineSceneData()->getRenderObjects().empty()) return;

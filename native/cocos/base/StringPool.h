@@ -26,19 +26,30 @@
 #pragma once
 
 #include <cstring>
-#include <map>
-#include <vector>
+#include "boost/functional/hash.hpp"
 #include "StringHandle.h"
 #include "base/Macros.h"
+#include "base/std/container/unordered_map.h"
+#include "base/std/container/vector.h"
 #include "threading/ReadWriteLock.h"
 
 namespace cc {
 
-struct StringCompare final {
-    inline bool operator()(char const *lhs, char const *rhs) const noexcept {
-        return strcmp(lhs, rhs) < 0;
+namespace {
+class StringHasher final {
+public:
+    size_t operator()(const char *str) const noexcept {
+        return boost::hash_range(str, str + strlen(str));
     }
 };
+
+class StringEqual final {
+public:
+    bool operator()(const char* c1, const char* c2) const noexcept{
+        return strcmp(c1, c2) == 0;
+    }
+};
+}
 
 template <bool ThreadSafe>
 class StringPool final {
@@ -59,9 +70,9 @@ private:
     char const * doHandleToString(const StringHandle &handle) const noexcept;
     StringHandle doFind(const char *str) const noexcept;
 
-    std::map<char const *, StringHandle, StringCompare> _stringToHandles{};
-    std::vector<char const *>                           _handleToStrings{};
-    mutable ReadWriteLock                               _readWriteLock{};
+    ccstd::unordered_map<char const *, StringHandle, StringHasher, StringEqual> _stringToHandles{};
+    ccstd::vector<char const *>                           _handleToStrings{};
+    mutable ReadWriteLock                                 _readWriteLock{};
 };
 
 using ThreadSafeStringPool = StringPool<true>;

@@ -50,18 +50,18 @@ struct ITextureCubeMipmap {
 };
 
 struct ITextureCubeSerializeMipmapData {
-    std::string front;
-    std::string back;
-    std::string left;
-    std::string right;
-    std::string top;
-    std::string bottom;
+    ccstd::string front;
+    ccstd::string back;
+    ccstd::string left;
+    ccstd::string right;
+    ccstd::string top;
+    ccstd::string bottom;
 };
 
 struct ITextureCubeSerializeData {
-    std::string                                  base;
-    bool                                         rgbe{false};
-    std::vector<ITextureCubeSerializeMipmapData> mipmaps;
+    ccstd::string                                  base;
+    bool                                           rgbe{false};
+    ccstd::vector<ITextureCubeSerializeMipmapData> mipmaps;
 };
 
 /**
@@ -109,7 +109,7 @@ public:
      * const textureCube = TextureCube.fromTexture2DArray(textures);
      * ```
      */
-    static TextureCube *fromTexture2DArray(const std::vector<Texture2D *> &textures);
+    static TextureCube *fromTexture2DArray(const ccstd::vector<Texture2D *> &textures);
 
     /**
      * @en All levels of mipmap images, be noted, automatically generated mipmaps are not included.
@@ -117,13 +117,13 @@ public:
      * @zh 所有层级 Mipmap，注意，这里不包含自动生成的 Mipmap。
      * 当设置 Mipmap 时，贴图的尺寸以及像素格式可能会改变。
      */
-    const std::vector<ITextureCubeMipmap> &getMipmaps() const {
+    const ccstd::vector<ITextureCubeMipmap> &getMipmaps() const {
         return _mipmaps;
     }
 
-    void setMipmaps(const std::vector<ITextureCubeMipmap> &value);
+    void setMipmaps(const ccstd::vector<ITextureCubeMipmap> &value);
 
-    void setMipmapsForJS(const std::vector<ITextureCubeMipmap> &value);
+    void setMipmapsForJS(const ccstd::vector<ITextureCubeMipmap> &value);
 
     /**
      * @en Level 0 mipmap image.
@@ -170,7 +170,7 @@ public:
 
     gfx::TextureInfo getGfxTextureCreateInfo(gfx::TextureUsageBit usage, gfx::Format format, uint32_t levelCount, gfx::TextureFlagBit flags) override;
 
-    void initDefault(const cc::optional<std::string> &uuid) override;
+    void initDefault(const cc::optional<ccstd::string> &uuid) override;
 
     bool validate() const override;
     //
@@ -179,7 +179,7 @@ public:
     bool isRGBE{false};
 
     /*@serializable*/
-    std::vector<ITextureCubeMipmap> _mipmaps;
+    ccstd::vector<ITextureCubeMipmap> _mipmaps;
 
 private:
     CC_DISALLOW_COPY_MOVE_ASSIGN(TextureCube);

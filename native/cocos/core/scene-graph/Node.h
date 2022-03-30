@@ -25,7 +25,6 @@
 
 #pragma once
 
-#include <vector>
 #include "base/Ptr.h"
 #include "base/TypeDef.h"
 #include "cocos/base/Any.h"
@@ -78,11 +77,11 @@ public:
 
     static Node *instantiate(Node *cloned, bool isSyncedNode);
     // for walk
-    static std::vector<std::vector<Node *>> stacks;
-    static index_t                          stackId;
+    static ccstd::vector<ccstd::vector<Node *>> stacks;
+    static index_t                              stackId;
 
     static void    setScene(Node *);
-    static index_t getIdxOfChild(const std::vector<IntrusivePtr<Node>> &, Node *);
+    static index_t getIdxOfChild(const ccstd::vector<IntrusivePtr<Node>> &, Node *);
 
     static bool isStatic; // cjh TODO: add getter / setter
 
@@ -96,7 +95,7 @@ public:
      * @param path The path of the target node
      * @param referenceNode If given, the search will be limited in the sub node tree of the reference node
      */
-    //    static Node *find(const std::string &path, Node *referenceNode = nullptr);
+    //    static Node *find(const ccstd::string &path, Node *referenceNode = nullptr);
 
     /**
      * @en Determine whether the given object is a normal Node. Will return false if [[Scene]] given.
@@ -109,7 +108,7 @@ public:
     static void clearNodeArray();
 
     Node();
-    explicit Node(const std::string &name);
+    explicit Node(const ccstd::string &name);
     ~Node() override;
 
     void setParent(Node *parent, bool isKeepWorld = false);
@@ -251,7 +250,7 @@ public:
         val ? _objFlags |= Flags::DONT_DESTROY : _objFlags &= ~Flags::DONT_DESTROY;
     }
 
-    inline const std::string &getUuid() const {
+    inline const ccstd::string &getUuid() const {
         return _id;
     }
 
@@ -261,14 +260,14 @@ public:
     inline void setActiveInHierarchy(bool v) { _activeInHierarchyArr[0] = (v ? 1 : 0); }
     inline void setActiveInHierarchyPtr(uint8_t *ptr) { _activeInHierarchyArr = ptr; }
 
-    virtual void                                  onPostActivated(bool active) {}
-    inline const std::vector<IntrusivePtr<Node>> &getChildren() const { return _children; }
-    inline Node *                                 getParent() const { return _parent; }
-    inline NodeEventProcessor *                   getEventProcessor() const { return _eventProcessor; }
+    virtual void                                    onPostActivated(bool active) {}
+    inline const ccstd::vector<IntrusivePtr<Node>> &getChildren() const { return _children; }
+    inline Node *                                   getParent() const { return _parent; }
+    inline NodeEventProcessor *                     getEventProcessor() const { return _eventProcessor; }
 
-    Node *           getChildByUuid(const std::string &) const;
-    Node *           getChildByName(const std::string &) const;
-    Node *           getChildByPath(const std::string &) const;
+    Node *           getChildByUuid(const ccstd::string &) const;
+    Node *           getChildByName(const ccstd::string &) const;
+    Node *           getChildByPath(const ccstd::string &) const;
     inline index_t   getSiblingIndex() const { return _siblingIndex; }
     inline UserData *getUserData() { return _userData.get(); }
     inline void      setUserData(UserData *data) { _userData = data; }
@@ -529,21 +528,21 @@ public:
     //    }
     //
     //    template <typename T, typename = std::enable_if_t<std::is_base_of<Component, T>::value>>
-    //    static Component *findComponents(Node * /*node*/, const std::vector<Component *> & /*components*/) {
+    //    static Component *findComponents(Node * /*node*/, const ccstd::vector<Component *> & /*components*/) {
     //        // cjh TODO:
     //        CC_ASSERT(false);
     //        return nullptr;
     //    }
     //
     //    template <typename T, typename = std::enable_if_t<std::is_base_of<Component, T>::value>>
-    //    static Component *findChildComponent(const std::vector<Node *> & /*children*/) {
+    //    static Component *findChildComponent(const ccstd::vector<Node *> & /*children*/) {
     //        // cjh TODO:
     //        CC_ASSERT(false);
     //        return nullptr;
     //    }
     //
     //    template <typename T, typename = std::enable_if_t<std::is_base_of<Component, T>::value>>
-    //    static void findChildComponents(const std::vector<Node *> & /*children*/, std::vector<Component *> & /*components*/) {
+    //    static void findChildComponents(const ccstd::vector<Node *> & /*children*/, ccstd::vector<Component *> & /*components*/) {
     //        // cjh TODO:
     //        CC_ASSERT(false);
     //    }
@@ -578,7 +577,7 @@ public:
     //
     //    // TODO(Lenovo):
     //    template <typename T, typename std::enable_if_t<std::is_base_of<Component, T>::value>>
-    //    std::vector<Component *> getComponents() const {
+    //    ccstd::vector<Component *> getComponents() const {
     //        // cjh TODO:
     //        CC_ASSERT(false);
     //        return {};
@@ -592,16 +591,16 @@ public:
     //    }
     //
     //    template <typename T, typename std::enable_if_t<std::is_base_of<Component, T>::value>>
-    //    std::vector<Component *> getComponentsInChildren() const {
+    //    ccstd::vector<Component *> getComponentsInChildren() const {
     //        // cjh TODO:
     //        CC_ASSERT(false);
     //        return {};
     //    }
     //
-    //    inline std::vector<Component *> getComponents() const { return _components; }
+    //    inline ccstd::vector<Component *> getComponents() const { return _components; }
     //
     //    void                     checkMultipleComp(Component *comp) {}
-    //    std::vector<Component *> _components;
+    //    ccstd::vector<Component *> _components;
     //
     //    friend void componentCorrupted(Node *node, Component *comp, uint32_t index);
     // ------------------  Component code end -----------------------------
@@ -611,7 +610,7 @@ public:
     //    Node *   _getChild(index_t i);
     //    void     _setChildrenSize(uint32_t size);
     //    uint32_t _getChildrenSize();
-    void _setChildren(std::vector<IntrusivePtr<Node>> &&children); // NOLINT
+    void _setChildren(ccstd::vector<IntrusivePtr<Node>> &&children); // NOLINT
     // For JS wrapper.
     inline uint32_t getEventMask() const { return _eventMask; }
     inline void     setEventMask(uint32_t mask) { _eventMask = mask; }
@@ -682,10 +681,10 @@ public:
     std::function<void(index_t)> onSiblingIndexChanged{nullptr};
     index_t                      _siblingIndex{0};
     // For deserialization
-    std::string                     _id;
-    std::vector<IntrusivePtr<Node>> _children;
-    Node *                          _parent{nullptr};
-    bool                            _active{true};
+    ccstd::string                     _id;
+    ccstd::vector<IntrusivePtr<Node>> _children;
+    Node *                            _parent{nullptr};
+    bool                              _active{true};
 
 private:
     // local transform

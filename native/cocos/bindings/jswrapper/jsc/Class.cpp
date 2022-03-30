@@ -43,9 +43,9 @@ namespace se {
     #define JS_PS_END JS_PSGS(0, 0, 0, 0)
 
 namespace {
-//        std::unordered_map<std::string, Class *> __clsMap;
-JSContextRef         __cx = nullptr;
-std::vector<Class *> __allClasses;
+//        ccstd::unordered_map<std::string, Class *> __clsMap;
+JSContextRef           __cx = nullptr;
+ccstd::vector<Class *> __allClasses;
 
 void defaultFinalizeCallback(JSObjectRef _obj) {
     void *nativeThisObject = JSObjectGetPrivate(_obj);

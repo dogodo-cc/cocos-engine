@@ -33,6 +33,7 @@
 #include "renderer/gfx-base/GFXDevice.h"
 #include "renderer/pipeline/Define.h"
 #include "renderer/pipeline/RenderPipeline.h"
+#include "renderer/pipeline/custom/RenderInterfaceTypes.h"
 
 namespace cc {
 
@@ -46,8 +47,8 @@ bool recordAsBool(const MacroRecord::mapped_type &v) {
     if (cc::holds_alternative<bool>(v)) {
         return cc::get<bool>(v);
     }
-    if (cc::holds_alternative<std::string>(v)) {
-        return cc::get<std::string>(v) == "true";
+    if (cc::holds_alternative<ccstd::string>(v)) {
+        return cc::get<ccstd::string>(v) == "true";
     }
     if (cc::holds_alternative<int32_t>(v)) {
         return cc::get<int32_t>(v);
@@ -55,12 +56,12 @@ bool recordAsBool(const MacroRecord::mapped_type &v) {
     return false;
 }
 
-std::string recordAsString(const MacroRecord::mapped_type &v) {
+ccstd::string recordAsString(const MacroRecord::mapped_type &v) {
     if (cc::holds_alternative<bool>(v)) {
         return cc::get<bool>(v) ? "1" : "0";
     }
-    if (cc::holds_alternative<std::string>(v)) {
-        return cc::get<std::string>(v);
+    if (cc::holds_alternative<ccstd::string>(v)) {
+        return cc::get<ccstd::string>(v);
     }
     if (cc::holds_alternative<int32_t>(v)) {
         return std::to_string(cc::get<int32_t>(v));
@@ -68,7 +69,7 @@ std::string recordAsString(const MacroRecord::mapped_type &v) {
     return "";
 }
 
-std::string mapDefine(const IDefineInfo &info, const cc::optional<MacroRecord::mapped_type> &def) {
+ccstd::string mapDefine(const IDefineInfo &info, const cc::optional<MacroRecord::mapped_type> &def) {
     if (info.type == "boolean") {
         return def.has_value() ? (recordAsBool(def.value()) ? "1" : "0") : "0";
     }
@@ -82,13 +83,13 @@ std::string mapDefine(const IDefineInfo &info, const cc::optional<MacroRecord::m
     return "-1"; // should neven happen
 }
 
-std::vector<IMacroInfo> prepareDefines(const MacroRecord &records, const std::vector<IDefineRecord> &defList) {
-    std::vector<IMacroInfo> macros{};
+ccstd::vector<IMacroInfo> prepareDefines(const MacroRecord &records, const ccstd::vector<IDefineRecord> &defList) {
+    ccstd::vector<IMacroInfo> macros{};
     for (const auto &tmp : defList) {
         const auto &name      = tmp.name;
         auto        it        = records.find(name);
         auto        value     = mapDefine(tmp, it == records.end() ? cc::nullopt : cc::optional<MacroValue>(it->second));
-        bool        isDefault = it == records.end() || (cc::holds_alternative<std::string>(it->second) && cc::get<std::string>(it->second) == "0");
+        bool        isDefault = it == records.end() || (cc::holds_alternative<ccstd::string>(it->second) && cc::get<ccstd::string>(it->second) == "0");
         macros.emplace_back();
         auto &info     = macros.back();
         info.name      = name;
@@ -98,7 +99,7 @@ std::vector<IMacroInfo> prepareDefines(const MacroRecord &records, const std::ve
     return macros;
 }
 
-std::string getShaderInstanceName(const std::string &name, const std::vector<IMacroInfo> &macros) {
+ccstd::string getShaderInstanceName(const ccstd::string &name, const ccstd::vector<IMacroInfo> &macros) {
     std::stringstream ret;
     ret << name;
     for (const auto &cur : macros) {
@@ -110,12 +111,12 @@ std::string getShaderInstanceName(const std::string &name, const std::vector<IMa
 }
 
 void insertBuiltinBindings(const IProgramInfo &tmpl, ITemplateInfo &tmplInfo, const pipeline::DescriptorSetLayoutInfos &source,
-                           const std::string &type, std::vector<gfx::DescriptorSetLayoutBinding> *outBindings) {
+                           const ccstd::string &type, ccstd::vector<gfx::DescriptorSetLayoutBinding> *outBindings) {
     CC_ASSERT(type == "locals" || type == "globals");
     const auto &target = type == "globals" ? tmpl.builtins.globals : tmpl.builtins.locals;
 
     // Blocks
-    std::vector<gfx::UniformBlock> tempBlocks{};
+    ccstd::vector<gfx::UniformBlock> tempBlocks{};
     for (const auto &b : target.blocks) {
         auto infoIt = source.blocks.find(b.name);
         if (infoIt == source.blocks.end()) {
@@ -138,7 +139,7 @@ void insertBuiltinBindings(const IProgramInfo &tmpl, ITemplateInfo &tmplInfo, co
     tmplInfo.shaderInfo.blocks.insert(tmplInfo.shaderInfo.blocks.begin(), tempBlocks.begin(), tempBlocks.end());
 
     // SamplerTextures
-    std::vector<gfx::UniformSamplerTexture> tempSamplerTextures;
+    ccstd::vector<gfx::UniformSamplerTexture> tempSamplerTextures;
     for (const auto &s : target.samplerTextures) {
         auto infoIt = source.samplers.find(s.name);
         if (infoIt == source.samplers.end()) {
@@ -176,7 +177,7 @@ int32_t getSize(const IBlockInfo &block) {
 }
 
 auto genHandles(const IProgramInfo &tmpl) {
-    Record<std::string, uint32_t> handleMap{};
+    Record<ccstd::string, uint32_t> handleMap{};
     // block member handles
     for (const auto &block : tmpl.blocks) {
         const auto members = block.members;
@@ -198,7 +199,7 @@ auto genHandles(const IProgramInfo &tmpl) {
     return handleMap;
 }
 
-bool dependencyCheck(const std::vector<std::string> &dependencies, const MacroRecord &defines) {
+bool dependencyCheck(const ccstd::vector<ccstd::string> &dependencies, const MacroRecord &defines) {
     for (const auto &d : dependencies) { // NOLINT(readability-use-anyofallof)
         if (d[0] == '!') {               // negative dependency
             if (defines.find(d.substr(1)) != defines.end()) {
@@ -211,10 +212,10 @@ bool dependencyCheck(const std::vector<std::string> &dependencies, const MacroRe
     return true;
 }
 
-std::vector<gfx::Attribute> getActiveAttributes(const IProgramInfo &tmpl, const ITemplateInfo &tmplInfo, const MacroRecord &defines) {
-    std::vector<gfx::Attribute> out{};
-    const auto &                attributes    = tmpl.attributes;
-    const auto &                gfxAttributes = tmplInfo.gfxAttributes;
+ccstd::vector<gfx::Attribute> getActiveAttributes(const IProgramInfo &tmpl, const ITemplateInfo &tmplInfo, const MacroRecord &defines) {
+    ccstd::vector<gfx::Attribute> out{};
+    const auto &                  attributes    = tmpl.attributes;
+    const auto &                  gfxAttributes = tmplInfo.gfxAttributes;
     for (auto i = 0; i < attributes.size(); i++) {
         if (!dependencyCheck(attributes[i].defines, defines)) {
             continue;
@@ -240,7 +241,7 @@ const char *getDeviceShaderVersion(const gfx::Device *device) {
 }
 
 //
-static void copyDefines(const std::vector<IDefineInfo> &from, std::vector<IDefineRecord> &to) {
+static void copyDefines(const ccstd::vector<IDefineInfo> &from, ccstd::vector<IDefineRecord> &to) {
     to.resize(from.size());
     for (size_t i = 0, len = from.size(); i < len; ++i) {
         to[i].name       = from[i].name;
@@ -338,7 +339,7 @@ IProgramInfo *ProgramLib::define(IShaderInfo &shader) {
         } else if (def.type == "string") {
             cnt     = getBitCount(static_cast<int32_t>(def.options.value().size()));
             def.map = [=](const MacroValue &value) -> int32_t {
-                const auto *pValue = cc::get_if<std::string>(&value);
+                const auto *pValue = cc::get_if<ccstd::string>(&value);
                 if (pValue != nullptr) {
                     auto idx = static_cast<int32_t>(std::find(def.options.value().begin(), def.options.value().end(), *pValue) - def.options.value().begin());
                     return std::max(0, idx);
@@ -355,7 +356,7 @@ IProgramInfo *ProgramLib::define(IShaderInfo &shader) {
                 if (pInt != nullptr) {
                     return *pInt ? 1 : 0;
                 }
-                const auto *pString = cc::get_if<std::string>(&value);
+                const auto *pString = cc::get_if<ccstd::string>(&value);
                 if (pString != nullptr) {
                     return *pString != "0" || !(*pString).empty() ? 1 : 0;
                 }
@@ -392,7 +393,7 @@ IProgramInfo *ProgramLib::define(IShaderInfo &shader) {
             bindingsInfo.descriptorType = gfx::DescriptorType::UNIFORM_BUFFER;
             bindingsInfo.count          = 1;
             bindingsInfo.stageFlags     = block.stageFlags;
-            std::vector<gfx::Uniform> uniforms;
+            ccstd::vector<gfx::Uniform> uniforms;
             {
                 // construct uniforms
                 uniforms.reserve(block.members.size());
@@ -540,7 +541,7 @@ IProgramInfo *ProgramLib::define(IShaderInfo &shader) {
  * @param name Target shader name
  */
 
-IProgramInfo *ProgramLib::getTemplate(const std::string &name) {
+IProgramInfo *ProgramLib::getTemplate(const ccstd::string &name) {
     auto it = _templates.find(name);
     return it != _templates.end() ? &it->second : nullptr;
 }
@@ -551,7 +552,7 @@ IProgramInfo *ProgramLib::getTemplate(const std::string &name) {
  * @param name Target shader name
  */
 
-ITemplateInfo *ProgramLib::getTemplateInfo(const std::string &name) {
+ITemplateInfo *ProgramLib::getTemplateInfo(const ccstd::string &name) {
     auto it = _templates.find(name);
     assert(it != _templates.end());
     auto hash   = it->second.hash;
@@ -564,7 +565,7 @@ ITemplateInfo *ProgramLib::getTemplateInfo(const std::string &name) {
  * @zh 通过名字获取 Shader 模板相关联的管线布局
  * @param name Target shader name
  */
-gfx::DescriptorSetLayout *ProgramLib::getDescriptorSetLayout(gfx::Device *device, const std::string &name, bool isLocal) {
+gfx::DescriptorSetLayout *ProgramLib::getDescriptorSetLayout(gfx::Device *device, const ccstd::string &name, bool isLocal) {
     auto itTmpl = _templates.find(name);
     assert(itTmpl != _templates.end());
     const auto &tmpl      = itTmpl->second;
@@ -585,7 +586,7 @@ gfx::DescriptorSetLayout *ProgramLib::getDescriptorSetLayout(gfx::Device *device
     return tmplInfo.setLayouts.at(isLocal ? static_cast<index_t>(pipeline::SetIndex::LOCAL) : static_cast<index_t>(pipeline::SetIndex::MATERIAL));
 }
 
-std::string ProgramLib::getKey(const std::string &name, const MacroRecord &defines) {
+ccstd::string ProgramLib::getKey(const ccstd::string &name, const MacroRecord &defines) {
     auto itTpl = _templates.find(name);
     assert(itTpl != _templates.end());
     auto &tmpl     = itTpl->second;
@@ -602,7 +603,7 @@ std::string ProgramLib::getKey(const std::string &name, const MacroRecord &defin
             auto        offset = tmplDef.offset;
             key << offset << mapped << "|";
         }
-        std::string ret{key.str() + std::to_string(tmpl.hash)};
+        ccstd::string ret{key.str() + std::to_string(tmpl.hash)};
         return ret;
     }
     uint32_t          key = 0;
@@ -618,21 +619,21 @@ std::string ProgramLib::getKey(const std::string &name, const MacroRecord &defin
         key |= (mapped << offset);
     }
     ss << std::hex << key << "|" << std::to_string(tmpl.hash);
-    std::string ret{ss.str()};
+    ccstd::string ret{ss.str()};
     return ret;
 }
 
 void ProgramLib::destroyShaderByDefines(const MacroRecord &defines) {
     if (defines.empty()) return;
-    std::vector<std::string> defineValues;
+    ccstd::vector<ccstd::string> defineValues;
     for (const auto &i : defines) {
         defineValues.emplace_back(i.first + recordAsString(i.second));
     }
-    std::vector<std::string> matchedKeys;
+    ccstd::vector<ccstd::string> matchedKeys;
     for (const auto &i : _cache) {
         bool matched = true;
         for (const auto &v : defineValues) {
-            if (i.first.find(v) == std::string::npos) {
+            if (i.first.find(v) == ccstd::string::npos) {
                 matched = false;
                 break;
             }
@@ -648,13 +649,13 @@ void ProgramLib::destroyShaderByDefines(const MacroRecord &defines) {
     }
 }
 
-gfx::Shader *ProgramLib::getGFXShader(gfx::Device *device, const std::string &name, MacroRecord &defines,
-                                      pipeline::RenderPipeline *pipeline, std::string *keyOut) {
+gfx::Shader *ProgramLib::getGFXShader(gfx::Device *device, const ccstd::string &name, MacroRecord &defines,
+                                      render::PipelineRuntime *pipeline, ccstd::string *keyOut) {
     for (const auto &it : pipeline->getMacros()) {
         defines[it.first] = it.second;
     }
 
-    std::string key;
+    ccstd::string key;
     if (!keyOut) {
         key = getKey(name, defines);
     } else {
@@ -681,8 +682,8 @@ gfx::Shader *ProgramLib::getGFXShader(gfx::Device *device, const std::string &na
         tmplInfo.pipelineLayout = device->createPipelineLayout(gfx::PipelineLayoutInfo{tmplInfo.setLayouts.get()});
     }
 
-    std::vector<IMacroInfo> macroArray = prepareDefines(defines, tmpl.defines);
-    std::stringstream       ss;
+    ccstd::vector<IMacroInfo> macroArray = prepareDefines(defines, tmpl.defines);
+    std::stringstream         ss;
     ss << std::endl;
     for (const auto &m : macroArray) {
         ss << "#define " << m.name << " " << m.value << std::endl;

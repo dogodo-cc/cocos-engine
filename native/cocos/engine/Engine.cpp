@@ -37,11 +37,11 @@
 #include "platform/BasePlatform.h"
 #include "platform/FileUtils.h"
 
-#if USE_AUDIO
+#if CC_USE_AUDIO
     #include "cocos/audio/include/AudioEngine.h"
 #endif
 
-#if USE_SOCKET
+#if CC_USE_SOCKET
     #include "cocos/network/WebSocket.h"
 #endif
 
@@ -49,7 +49,12 @@
 #include "application/BaseApplication.h"
 #include "base/Scheduler.h"
 #include "cocos/network/HttpClient.h"
+#include "core/Root.h"
+#include "core/assets/FreeTypeFont.h"
 #include "platform/interfaces/modules/ISystemWindow.h"
+#include "profiler/DebugRenderer.h"
+#include "profiler/Profiler.h"
+#include "renderer/pipeline/custom/RenderInterfaceTypes.h"
 
 namespace {
 
@@ -86,14 +91,15 @@ Engine::Engine() {
     FileUtils::getInstance()->addSearchPath("Resources", true);
     EventDispatcher::init();
     se::ScriptEngine::getInstance();
+    CC_PROFILER;
 }
 
 Engine::~Engine() {
-#if USE_AUDIO
+#if CC_USE_AUDIO
     AudioEngine::end();
 #endif
 
-    pipeline::RenderPipeline::getInstance()->destroy();
+    Root::getInstance()->getPipeline()->destroy();
 
     EventDispatcher::destroy();
     se::ScriptEngine::destroyInstance();
@@ -105,6 +111,10 @@ Engine::~Engine() {
 
     BasePlatform *platform = BasePlatform::getPlatform();
     platform->setHandleEventCallback(nullptr);
+
+    CC_PROFILER_DESTROY;
+    DebugRenderer::destroyInstance();
+    FreeTypeFontFace::destroyFreeType();
 }
 
 int32_t Engine::init() {
@@ -150,10 +160,10 @@ void Engine::close() { // NOLINT
     auto *scriptEngine = se::ScriptEngine::getInstance();
 
     cc::DeferredReleasePool::clear();
-#if USE_AUDIO
+#if CC_USE_AUDIO
     cc::AudioEngine::stopAll();
 #endif
-    //#if USE_SOCKET
+    //#if CC_USE_SOCKET
     //    cc::network::WebSocket::closeAllConnections();
     //#endif
     cc::network::HttpClient::destroyInstance();
@@ -197,54 +207,62 @@ void Engine::removeEventCallback(OSEventType evType) {
 }
 
 void Engine::tick() {
-    if (_needRestart) {
-        restartVM();
-        _needRestart = false;
-    }
+    CC_PROFILER_BEGIN_FRAME;
+    {
+        CC_PROFILE(EngineTick);
 
-    static std::chrono::steady_clock::time_point prevTime;
-    static std::chrono::steady_clock::time_point now;
-    static float                                 dt   = 0.F;
-    static double                                dtNS = NANOSECONDS_60FPS;
+        if (_needRestart) {
+            restartVM();
+            _needRestart = false;
+        }
 
-    ++_totalFrames;
+        static std::chrono::steady_clock::time_point prevTime;
+        static std::chrono::steady_clock::time_point now;
+        static float                                 dt   = 0.F;
+        static double                                dtNS = NANOSECONDS_60FPS;
 
-    // iOS/macOS use its own fps limitation algorithm.
+        ++_totalFrames;
+
+        // iOS/macOS use its own fps limitation algorithm.
 #if (CC_PLATFORM == CC_PLATFORM_ANDROID || CC_PLATFORM == CC_PLATFORM_WINDOWS || CC_PLATFORM == CC_PLATFORM_OHOS)
-    if (dtNS < static_cast<double>(_prefererredNanosecondsPerFrame)) {
-        std::this_thread::sleep_for(
-            std::chrono::nanoseconds(_prefererredNanosecondsPerFrame - static_cast<int64_t>(dtNS)));
-        dtNS = static_cast<double>(_prefererredNanosecondsPerFrame);
-    }
+        if (dtNS < static_cast<double>(_prefererredNanosecondsPerFrame)) {
+            CC_PROFILE(EngineSleep);
+            std::this_thread::sleep_for(
+                std::chrono::nanoseconds(_prefererredNanosecondsPerFrame - static_cast<int64_t>(dtNS)));
+            dtNS = static_cast<double>(_prefererredNanosecondsPerFrame);
+        }
 #endif
 
-    prevTime = std::chrono::steady_clock::now();
+        prevTime = std::chrono::steady_clock::now();
 
-    _scheduler->update(dt);
+        _scheduler->update(dt);
 
-    se::ScriptEngine::getInstance()->handlePromiseExceptions();
-    cc::EventDispatcher::dispatchTickEvent(dt);
-    se::ScriptEngine::getInstance()->mainLoopUpdate();
+        se::ScriptEngine::getInstance()->handlePromiseExceptions();
+        cc::EventDispatcher::dispatchTickEvent(dt);
+        se::ScriptEngine::getInstance()->mainLoopUpdate();
 
-    cc::DeferredReleasePool::clear();
+        cc::DeferredReleasePool::clear();
 
-    now  = std::chrono::steady_clock::now();
-    dtNS = dtNS * 0.1 + 0.9 * static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(now - prevTime).count());
-    dt   = static_cast<float>(dtNS) / NANOSECONDS_PER_SECOND;
+        now  = std::chrono::steady_clock::now();
+        dtNS = dtNS * 0.1 + 0.9 * static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(now - prevTime).count());
+        dt   = static_cast<float>(dtNS) / NANOSECONDS_PER_SECOND;
+    }
+
+    CC_PROFILER_END_FRAME;
 }
 
 int32_t Engine::restartVM() {
     cc::EventDispatcher::dispatchRestartVM();
 
-    pipeline::RenderPipeline::getInstance()->destroy();
+    Root::getInstance()->getPipeline()->destroy();
 
     auto *scriptEngine = se::ScriptEngine::getInstance();
 
     cc::DeferredReleasePool::clear();
-#if USE_AUDIO
+#if CC_USE_AUDIO
     cc::AudioEngine::stopAll();
 #endif
-    //#if USE_SOCKET
+    //#if CC_USE_SOCKET
     //    cc::network::WebSocket::closeAllConnections();
     //#endif
     cc::network::HttpClient::destroyInstance();

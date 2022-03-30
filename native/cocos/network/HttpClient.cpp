@@ -29,7 +29,6 @@
 #include "network/HttpClient.h"
 #include <curl/curl.h>
 #include <errno.h>
-#include <queue>
 #include "application/ApplicationManager.h"
 #include "base/Log.h"
 #include "base/memory/Memory.h"
@@ -50,8 +49,8 @@ typedef size_t (*write_callback)(void *ptr, size_t size, size_t nmemb, void *str
 
 // Callback function used by libcurl for collect response data
 static size_t writeData(void *ptr, size_t size, size_t nmemb, void *stream) {
-    std::vector<char> *recvBuffer = (std::vector<char> *)stream;
-    size_t             sizes      = size * nmemb;
+    ccstd::vector<char> *recvBuffer = (ccstd::vector<char> *)stream;
+    size_t               sizes      = size * nmemb;
 
     // add data to the end of recvBuffer
     // write data maybe called more than once in a single request
@@ -62,8 +61,8 @@ static size_t writeData(void *ptr, size_t size, size_t nmemb, void *stream) {
 
 // Callback function used by libcurl for collect header data
 static size_t writeHeaderData(void *ptr, size_t size, size_t nmemb, void *stream) {
-    std::vector<char> *recvBuffer = (std::vector<char> *)stream;
-    size_t             sizes      = size * nmemb;
+    ccstd::vector<char> *recvBuffer = (ccstd::vector<char> *)stream;
+    size_t               sizes      = size * nmemb;
 
     // add data to the end of recvBuffer
     // write data maybe called more than once in a single request
@@ -176,7 +175,7 @@ static bool configureCURL(HttpClient *client, HttpRequest *request, CURL *handle
         return false;
     }
 
-    std::string sslCaFilename = client->getSSLVerification();
+    ccstd::string sslCaFilename = client->getSSLVerification();
     if (sslCaFilename.empty()) {
         curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, 0L);
         curl_easy_setopt(handle, CURLOPT_SSL_VERIFYHOST, 0L);
@@ -233,7 +232,7 @@ public:
             return false;
 
         /* get custom header data (if set) */
-        std::vector<std::string> headers = request->getHeaders();
+        ccstd::vector<ccstd::string> headers = request->getHeaders();
         if (!headers.empty()) {
             /* append custom headers one by one */
             for (auto &header : headers)
@@ -242,7 +241,7 @@ public:
             if (!setOption(CURLOPT_HTTPHEADER, _headers))
                 return false;
         }
-        std::string cookieFilename = client->getCookieFilename();
+        ccstd::string cookieFilename = client->getCookieFilename();
         if (!cookieFilename.empty()) {
             if (!setOption(CURLOPT_COOKIEFILE, cookieFilename.c_str())) {
                 return false;
@@ -345,13 +344,13 @@ void HttpClient::destroyInstance() {
 void HttpClient::enableCookies(const char *cookieFile) {
     std::lock_guard<std::mutex> lock(_cookieFileMutex);
     if (cookieFile) {
-        _cookieFilename = std::string(cookieFile);
+        _cookieFilename = ccstd::string(cookieFile);
     } else {
         _cookieFilename = (FileUtils::getInstance()->getWritablePath() + "cookieFile.txt");
     }
 }
 
-void HttpClient::setSSLVerification(const std::string &caFile) {
+void HttpClient::setSSLVerification(const ccstd::string &caFile) {
     std::lock_guard<std::mutex> lock(_sslCaFileMutex);
     _sslCaFilename = caFile;
 }
@@ -561,12 +560,12 @@ int HttpClient::getTimeoutForRead() {
     return _timeoutForRead;
 }
 
-const std::string &HttpClient::getCookieFilename() {
+const ccstd::string &HttpClient::getCookieFilename() {
     std::lock_guard<std::mutex> lock(_cookieFileMutex);
     return _cookieFilename;
 }
 
-const std::string &HttpClient::getSSLVerification() {
+const ccstd::string &HttpClient::getSSLVerification() {
     std::lock_guard<std::mutex> lock(_sslCaFileMutex);
     return _sslCaFilename;
 }

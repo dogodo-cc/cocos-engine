@@ -48,6 +48,7 @@
 #include "states/VKTextureBarrier.h"
 
 #include "gfx-base/SPIRVUtils.h"
+#include "profiler/Profiler.h"
 
 CC_DISABLE_WARNINGS()
 #define VMA_IMPLEMENTATION
@@ -107,8 +108,8 @@ bool CCVKDevice::doInit(const DeviceInfo & /*info*/) {
     _gpuDevice->minorVersion = _gpuContext->minorVersion;
 
     // only enable the absolute essentials
-    vector<const char *> requestedLayers{};
-    vector<const char *> requestedExtensions{
+    ccstd::vector<const char *> requestedLayers{};
+    ccstd::vector<const char *> requestedExtensions{
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     };
     if (_gpuDevice->minorVersion < 2) {
@@ -159,9 +160,9 @@ bool CCVKDevice::doInit(const DeviceInfo & /*info*/) {
     }
 
     // prepare the device queues
-    uint32_t                        queueFamilyPropertiesCount = utils::toUint(_gpuContext->queueFamilyProperties.size());
-    vector<VkDeviceQueueCreateInfo> queueCreateInfos(queueFamilyPropertiesCount, {VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO});
-    vector<vector<float>>           queuePriorities(queueFamilyPropertiesCount);
+    uint32_t                               queueFamilyPropertiesCount = utils::toUint(_gpuContext->queueFamilyProperties.size());
+    ccstd::vector<VkDeviceQueueCreateInfo> queueCreateInfos(queueFamilyPropertiesCount, {VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO});
+    ccstd::vector<ccstd::vector<float>>    queuePriorities(queueFamilyPropertiesCount);
 
     for (uint32_t queueFamilyIndex = 0U; queueFamilyIndex < queueFamilyPropertiesCount; ++queueFamilyIndex) {
         const VkQueueFamilyProperties &queueFamilyProperty = _gpuContext->queueFamilyProperties[queueFamilyIndex];
@@ -239,7 +240,7 @@ bool CCVKDevice::doInit(const DeviceInfo & /*info*/) {
 
     initFormatFeature();
 
-    String compressedFmts;
+    ccstd::string compressedFmts;
 
     if (getFormatFeatures(Format::BC1_SRGB_ALPHA) != FormatFeature::NONE) {
         compressedFmts += "dxt ";
@@ -420,21 +421,21 @@ bool CCVKDevice::doInit(const DeviceInfo & /*info*/) {
 
     ///////////////////// Print Debug Info /////////////////////
 
-    String instanceLayers;
-    String instanceExtensions;
-    String deviceLayers;
-    String deviceExtensions;
+    ccstd::string instanceLayers;
+    ccstd::string instanceExtensions;
+    ccstd::string deviceLayers;
+    ccstd::string deviceExtensions;
     for (const char *layer : _gpuContext->layers) {
-        instanceLayers += layer + String(" ");
+        instanceLayers += layer + ccstd::string(" ");
     }
     for (const char *extension : _gpuContext->extensions) {
-        instanceExtensions += extension + String(" ");
+        instanceExtensions += extension + ccstd::string(" ");
     }
     for (const char *layer : _layers) {
-        deviceLayers += layer + String(" ");
+        deviceLayers += layer + ccstd::string(" ");
     }
     for (const char *extension : _extensions) {
-        deviceExtensions += extension + String(" ");
+        deviceExtensions += extension + ccstd::string(" ");
     }
 
     uint32_t apiVersion = _gpuContext->physicalDeviceProperties.apiVersion;
@@ -542,11 +543,11 @@ void CCVKDevice::doDestroy() {
 }
 
 namespace {
-vector<VkSwapchainKHR>       vkSwapchains;
-vector<uint32_t>             vkSwapchainIndices;
-vector<CCVKGPUSwapchain *>   gpuSwapchains;
-vector<VkImageMemoryBarrier> vkAcquireBarriers;
-vector<VkImageMemoryBarrier> vkPresentBarriers;
+ccstd::vector<VkSwapchainKHR>       vkSwapchains;
+ccstd::vector<uint32_t>             vkSwapchainIndices;
+ccstd::vector<CCVKGPUSwapchain *>   gpuSwapchains;
+ccstd::vector<VkImageMemoryBarrier> vkAcquireBarriers;
+ccstd::vector<VkImageMemoryBarrier> vkPresentBarriers;
 
 VkImageMemoryBarrier acquireBarrier{
     VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -626,6 +627,7 @@ void CCVKDevice::acquire(Swapchain *const *swapchains, uint32_t count) {
 }
 
 void CCVKDevice::present() {
+    CC_PROFILE(CCVKDevicePresent);
     auto *queue          = static_cast<CCVKQueue *>(_queue);
     _numDrawCalls        = queue->_numDrawCalls;
     _numInstances        = queue->_numInstances;
@@ -669,7 +671,7 @@ CCVKGPURecycleBin *       CCVKDevice::gpuRecycleBin() { return _gpuRecycleBins[_
 CCVKGPUStagingBufferPool *CCVKDevice::gpuStagingBufferPool() { return _gpuStagingBufferPools[_gpuDevice->curBackBufferIndex]; }
 
 void CCVKDevice::waitAllFences() {
-    static vector<VkFence> fences;
+    static ccstd::vector<VkFence> fences;
     fences.clear();
 
     for (auto *fencePool : _gpuFencePools) {
@@ -683,6 +685,18 @@ void CCVKDevice::waitAllFences() {
             fencePool->reset();
         }
     }
+}
+
+void CCVKDevice::updateBackBufferCount(uint32_t backBufferCount) {
+    if (backBufferCount <= _gpuDevice->backBufferCount) return;
+    for (uint32_t i = _gpuDevice->backBufferCount; i < backBufferCount; i++) {
+        _gpuFencePools.push_back(CC_NEW(CCVKGPUFencePool(_gpuDevice)));
+        _gpuRecycleBins.push_back(CC_NEW(CCVKGPURecycleBin(_gpuDevice)));
+        _gpuStagingBufferPools.push_back(CC_NEW(CCVKGPUStagingBufferPool(_gpuDevice)));
+    }
+    _gpuBufferHub->updateBackBufferCount(backBufferCount);
+    _gpuDescriptorSetHub->updateBackBufferCount(backBufferCount);
+    _gpuDevice->backBufferCount = backBufferCount;
 }
 
 void CCVKDevice::initFormatFeature() {
@@ -792,15 +806,17 @@ TextureBarrier *CCVKDevice::createTextureBarrier(const TextureBarrierInfo &info)
 }
 
 void CCVKDevice::copyBuffersToTexture(const uint8_t *const *buffers, Texture *dst, const BufferTextureCopy *regions, uint32_t count) {
+    CC_PROFILE(CCVKDeviceCopyBuffersToTexture);
     gpuTransportHub()->checkIn([this, buffers, dst, regions, count](CCVKGPUCommandBuffer *gpuCommandBuffer) {
         cmdFuncCCVKCopyBuffersToTexture(this, buffers, static_cast<CCVKTexture *>(dst)->gpuTexture(), regions, count, gpuCommandBuffer);
     });
 }
 
 void CCVKDevice::copyTextureToBuffers(Texture *srcTexture, uint8_t *const *buffers, const BufferTextureCopy *regions, uint32_t count) {
-    uint32_t                              totalSize = 0U;
-    Format                                format    = srcTexture->getFormat();
-    vector<std::pair<uint32_t, uint32_t>> regionOffsetSizes(count);
+    CC_PROFILE(CCVKDeviceCopyTextureToBuffers);
+    uint32_t                                     totalSize = 0U;
+    Format                                       format    = srcTexture->getFormat();
+    ccstd::vector<std::pair<uint32_t, uint32_t>> regionOffsetSizes(count);
     for (size_t i = 0U; i < count; ++i) {
         const BufferTextureCopy &region     = regions[i];
         uint32_t                 w          = region.buffStride > 0 ? region.buffStride : region.texExtent.width;
@@ -833,15 +849,16 @@ void CCVKDevice::copyTextureToBuffers(Texture *srcTexture, uint8_t *const *buffe
 }
 
 void CCVKDevice::getQueryPoolResults(QueryPool *queryPool) {
+    CC_PROFILE(CCVKDeviceGetQueryPoolResults);
     auto *vkQueryPool = static_cast<CCVKQueryPool *>(queryPool);
     auto  queryCount  = static_cast<uint32_t>(vkQueryPool->_ids.size());
     CCASSERT(queryCount <= vkQueryPool->getMaxQueryObjects(), "Too many query commands.");
 
-    const bool            bWait  = queryPool->getForceWait();
-    uint32_t              width  = bWait ? 1U : 2U;
-    uint64_t              stride = sizeof(uint64_t) * width;
-    VkQueryResultFlagBits flag   = bWait ? VK_QUERY_RESULT_WAIT_BIT : VK_QUERY_RESULT_WITH_AVAILABILITY_BIT;
-    std::vector<uint64_t> results(queryCount * width, 0ULL);
+    const bool              bWait  = queryPool->getForceWait();
+    uint32_t                width  = bWait ? 1U : 2U;
+    uint64_t                stride = sizeof(uint64_t) * width;
+    VkQueryResultFlagBits   flag   = bWait ? VK_QUERY_RESULT_WAIT_BIT : VK_QUERY_RESULT_WITH_AVAILABILITY_BIT;
+    ccstd::vector<uint64_t> results(queryCount * width, 0ULL);
 
     if (queryCount > 0U) {
         VkResult result = vkGetQueryPoolResults(
@@ -856,7 +873,7 @@ void CCVKDevice::getQueryPoolResults(QueryPool *queryPool) {
         CCASSERT(result == VK_SUCCESS || result == VK_NOT_READY, "Unexpected error code.");
     }
 
-    std::unordered_map<uint32_t, uint64_t> mapResults;
+    ccstd::unordered_map<uint32_t, uint64_t> mapResults;
     for (auto queryId = 0U; queryId < queryCount; queryId++) {
         uint32_t offset = queryId * width;
         if (bWait || results[offset + 1] > 0) {
@@ -883,14 +900,14 @@ static VkResult VKAPI_PTR vkCreateRenderPass2KHRFallback(
     const VkRenderPassCreateInfo2 *pCreateInfo,
     const VkAllocationCallbacks *  pAllocator,
     VkRenderPass *                 pRenderPass) {
-    static vector<VkAttachmentDescription> attachmentDescriptions;
-    static vector<VkSubpassDescription>    subpassDescriptions;
-    static vector<VkAttachmentReference>   attachmentReferences;
-    static vector<VkSubpassDependency>     subpassDependencies;
-    static vector<size_t>                  inputs;
-    static vector<size_t>                  colors;
-    static vector<size_t>                  resolves;
-    static vector<size_t>                  depths;
+    static ccstd::vector<VkAttachmentDescription> attachmentDescriptions;
+    static ccstd::vector<VkSubpassDescription>    subpassDescriptions;
+    static ccstd::vector<VkAttachmentReference>   attachmentReferences;
+    static ccstd::vector<VkSubpassDependency>     subpassDependencies;
+    static ccstd::vector<size_t>                  inputs;
+    static ccstd::vector<size_t>                  colors;
+    static ccstd::vector<size_t>                  resolves;
+    static ccstd::vector<size_t>                  depths;
 
     attachmentDescriptions.resize(pCreateInfo->attachmentCount);
     for (uint32_t i = 0; i < pCreateInfo->attachmentCount; ++i) {

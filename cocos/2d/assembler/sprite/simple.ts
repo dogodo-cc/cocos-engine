@@ -28,7 +28,6 @@
  * @module ui-assembler
  */
 
-import { UI_GPU_DRIVEN } from 'internal:constants';
 import { Vec3 } from '../../../core/math';
 import { IAssembler } from '../../renderer/base';
 import { IRenderData, RenderData } from '../../renderer/render-data';
@@ -69,11 +68,6 @@ export const simple: IAssembler = {
         // }
         dynamicAtlasManager.packToDynamicAtlas(sprite, frame);
         this.updateUVs(sprite);
-        // @ts-expect-error hack
-        if (UI_GPU_DRIVEN && sprite._canDrawByFourVertex) {
-            sprite._updateUVWithTrim();
-            return;
-        }
 
         const renderData = sprite.renderData;
         if (renderData && frame) {
@@ -162,8 +156,8 @@ export const simple: IAssembler = {
         // quick version
         const bid = chunk.bufferId;
         const vid = chunk.vertexOffset;
-        const meshBuffer = chunk.vertexAccessor.getMeshBuffer(chunk.bufferId);
-        const ib = chunk.vertexAccessor.getIndexBuffer(bid);
+        const meshBuffer = chunk.meshBuffer;
+        const ib = chunk.meshBuffer.iData;
         let indexOffset = meshBuffer.indexOffset;
         ib[indexOffset++] = vid;
         ib[indexOffset++] = vid + 1;

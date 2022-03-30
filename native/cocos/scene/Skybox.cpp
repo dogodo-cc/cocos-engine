@@ -37,6 +37,7 @@
 #include "renderer/core/PassUtils.h"
 #include "renderer/gfx-base/GFXDevice.h"
 #include "renderer/pipeline/PipelineSceneData.h"
+#include "renderer/pipeline/custom/RenderInterfaceTypes.h"
 #include "scene/Ambient.h"
 #include "scene/Model.h"
 
@@ -182,14 +183,14 @@ bool Skybox::isRGBE() const {
 
 TextureCube *Skybox::getDiffuseMap() const {
     const bool isHDR = Root::getInstance()->getPipeline()->getPipelineSceneData()->isHDR();
-    return isHDR ? _diffuseMapHDR.get() : _diffuseMapLDR.get();
+    return isHDR ? _diffuseMapHDR : _diffuseMapLDR;
 }
 void Skybox::setDiffuseMap(TextureCube *val) {
     const bool isHDR = Root::getInstance()->getPipeline()->getPipelineSceneData()->isHDR();
     if (isHDR) {
-        setDiffuseMaps(val, _envmapLDR);
+        setDiffuseMaps(val, _diffuseMapLDR);
     } else {
-        setDiffuseMaps(_envmapHDR, val);
+        setDiffuseMaps(_diffuseMapHDR, val);
     }
 }
 
@@ -240,7 +241,7 @@ void Skybox::activate() {
         auto *        mat = new Material();
         MacroRecord   defines{{"USE_RGBE_CUBEMAP", isRGBE}};
         IMaterialInfo matInfo;
-        matInfo.effectName = std::string{"skybox"};
+        matInfo.effectName = ccstd::string{"skybox"};
         matInfo.defines    = IMaterialInfo::DefinesType{defines};
         mat->initialize({matInfo});
         IMaterialInstanceInfo matInstInfo;
@@ -259,7 +260,7 @@ void Skybox::activate() {
             options.width  = 2;
             options.height = 2;
             options.length = 2;
-            skyboxMesh     = createMesh(
+            skyboxMesh     = MeshUtils::createMesh(
                 createGeometry(
                     PrimitiveType::BOX,
                     PrimitiveOptions{options}));
@@ -288,8 +289,8 @@ void Skybox::updatePipeline() const {
         _model->setSubModelMaterial(0, skyboxMaterial);
     }
 
-    Root *                    root     = Root::getInstance();
-    pipeline::RenderPipeline *pipeline = root->getPipeline();
+    Root *root     = Root::getInstance();
+    auto *pipeline = root->getPipeline();
 
     const bool    useRGBE            = isRGBE();
     const int32_t useIBLValue        = isUseIBL() ? (useRGBE ? 2 : 1) : 0;
@@ -297,7 +298,7 @@ void Skybox::updatePipeline() const {
     const bool    useHDRValue        = isUseHDR();
 
     bool valueChanged = false;
-    auto iter = pipeline->getMacros().find("CC_USE_IBL");
+    auto iter         = pipeline->getMacros().find("CC_USE_IBL");
     if (iter != pipeline->getMacros().end()) {
         const MacroValue &macroIBL    = iter->second;
         const int32_t *   macroIBLPtr = cc::get_if<int32_t>(&macroIBL);
@@ -329,7 +330,7 @@ void Skybox::updatePipeline() const {
 
     if (valueChanged) {
         root->onGlobalPipelineStateChanged();
-    }  
+    }
 }
 
 void Skybox::updateGlobalBinding() {

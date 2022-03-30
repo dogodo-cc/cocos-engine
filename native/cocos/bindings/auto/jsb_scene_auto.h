@@ -1,6 +1,6 @@
 // clang-format off
 #pragma once
-#include "base/Config.h"
+
 #include <type_traits>
 #include "cocos/bindings/jswrapper/SeApi.h"
 #include "cocos/bindings/manual/jsb_conversions.h"
@@ -271,6 +271,7 @@ SE_DECLARE_FUNC(js_scene_SubModel_getWorldBoundDescriptorSet);
 SE_DECLARE_FUNC(js_scene_SubModel_initPlanarShadowInstanceShader);
 SE_DECLARE_FUNC(js_scene_SubModel_initPlanarShadowShader);
 SE_DECLARE_FUNC(js_scene_SubModel_initialize);
+SE_DECLARE_FUNC(js_scene_SubModel_onGeometryChanged);
 SE_DECLARE_FUNC(js_scene_SubModel_onMacroPatchesStateChanged);
 SE_DECLARE_FUNC(js_scene_SubModel_onPipelineStateChanged);
 SE_DECLARE_FUNC(js_scene_SubModel_setOwner);
@@ -302,22 +303,28 @@ SE_DECLARE_FUNC(js_scene_Model_getInstancedBuffer);
 SE_DECLARE_FUNC(js_scene_Model_getInstancedBufferSize);
 SE_DECLARE_FUNC(js_scene_Model_getLocalData);
 SE_DECLARE_FUNC(js_scene_Model_getMacroPatches);
+SE_DECLARE_FUNC(js_scene_Model_getShadowBias);
+SE_DECLARE_FUNC(js_scene_Model_getShadowNormalBias);
 SE_DECLARE_FUNC(js_scene_Model_initLocalDescriptors);
 SE_DECLARE_FUNC(js_scene_Model_initSubModel);
 SE_DECLARE_FUNC(js_scene_Model_initWorldBoundDescriptors);
 SE_DECLARE_FUNC(js_scene_Model_initialize);
 SE_DECLARE_FUNC(js_scene_Model_isModelImplementedInJS);
+SE_DECLARE_FUNC(js_scene_Model_onGeometryChanged);
 SE_DECLARE_FUNC(js_scene_Model_onGlobalPipelineStateChanged);
 SE_DECLARE_FUNC(js_scene_Model_onMacroPatchesStateChanged);
 SE_DECLARE_FUNC(js_scene_Model_setBounds);
 SE_DECLARE_FUNC(js_scene_Model_setCalledFromJS);
 SE_DECLARE_FUNC(js_scene_Model_setInstMatWorldIdx);
 SE_DECLARE_FUNC(js_scene_Model_setInstancedAttributesViewData);
+SE_DECLARE_FUNC(js_scene_Model_setShadowBias);
+SE_DECLARE_FUNC(js_scene_Model_setShadowNormalBias);
 SE_DECLARE_FUNC(js_scene_Model_setSubModelMaterial);
 SE_DECLARE_FUNC(js_scene_Model_setSubModelMesh);
 SE_DECLARE_FUNC(js_scene_Model_updateInstancedAttributes);
 SE_DECLARE_FUNC(js_scene_Model_updateLightingmap);
 SE_DECLARE_FUNC(js_scene_Model_updateLocalDescriptors);
+SE_DECLARE_FUNC(js_scene_Model_updateLocalShadowBias);
 SE_DECLARE_FUNC(js_scene_Model_updateTransform);
 SE_DECLARE_FUNC(js_scene_Model_updateUBOs);
 SE_DECLARE_FUNC(js_scene_Model_updateWorldBound);
@@ -419,12 +426,12 @@ SE_DECLARE_FUNC(js_scene_Root_destroyWindows);
 SE_DECLARE_FUNC(js_scene_Root_frameMove);
 SE_DECLARE_FUNC(js_scene_Root_getBatcher2D);
 SE_DECLARE_FUNC(js_scene_Root_getEventProcessor);
-SE_DECLARE_FUNC(js_scene_Root_getPipeline);
 SE_DECLARE_FUNC(js_scene_Root_initialize);
 SE_DECLARE_FUNC(js_scene_Root_onGlobalPipelineStateChanged);
 SE_DECLARE_FUNC(js_scene_Root_resetCumulativeTime);
 SE_DECLARE_FUNC(js_scene_Root_resize);
 SE_DECLARE_FUNC(js_scene_Root_setRenderPipeline);
+SE_DECLARE_FUNC(js_scene_Root_usesCustomPipeline);
 SE_DECLARE_FUNC(js_scene_Root_getInstance);
 SE_DECLARE_FUNC(js_scene_Root_Root);
 
@@ -686,4 +693,4 @@ SE_DECLARE_FUNC(js_scene_Octree_setMaxPos);
 SE_DECLARE_FUNC(js_scene_Octree_setMinPos);
 SE_DECLARE_FUNC(js_scene_Octree_update);
 SE_DECLARE_FUNC(js_scene_Octree_Octree);
-    // clang-format on
+// clang-format on

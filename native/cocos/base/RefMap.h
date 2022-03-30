@@ -26,15 +26,16 @@
 
 #pragma once
 
-#include <unordered_map>
 #include "base/Log.h"
 #include "base/Random.h"
 #include "base/RefCounted.h"
+#include "base/std/container/unordered_map.h"
+#include "base/std/container/vector.h"
 
 namespace cc {
 
 /**
- * Similar to std::unordered_map, but it will manage reference count automatically internally.
+ * Similar to ccstd::unordered_map, but it will manage reference count automatically internally.
  * Which means it will invoke RefCounted::addRef() when adding an element, and invoke RefCounted::release() when removing an element.
  * @warning The element should be `RefCounted` or its sub-class.
  */
@@ -46,9 +47,9 @@ public:
     // ------------------------------------------
 
     /** Iterator, can be used to loop the Map. */
-    using iterator = typename std::unordered_map<K, V>::iterator;
+    using iterator = typename ccstd::unordered_map<K, V>::iterator;
     /** Const iterator, can be used to loop the Map. */
-    using const_iterator = typename std::unordered_map<K, V>::const_iterator;
+    using const_iterator = typename ccstd::unordered_map<K, V>::const_iterator;
 
     /** Return iterator to beginning. */
     iterator begin() { return _data.begin(); }
@@ -134,8 +135,8 @@ public:
     }
 
     /** Returns all keys in the map. */
-    std::vector<K> keys() const {
-        std::vector<K> keys;
+    ccstd::vector<K> keys() const {
+        ccstd::vector<K> keys;
 
         if (!_data.empty()) {
             keys.reserve(_data.size());
@@ -148,8 +149,8 @@ public:
     }
 
     /** Returns all keys that matches the object. */
-    std::vector<K> keys(V object) const {
-        std::vector<K> keys;
+    ccstd::vector<K> keys(V object) const {
+        ccstd::vector<K> keys;
 
         if (!_data.empty()) {
             keys.reserve(_data.size() / 10);
@@ -245,7 +246,7 @@ public:
      *
      * @param keys Keys of elements to be erased.
      */
-    void erase(const std::vector<K> &keys) {
+    void erase(const ccstd::vector<K> &keys) {
         for (const auto &key : keys) {
             this->erase(key);
         }
@@ -305,7 +306,7 @@ private:
         }
     }
 
-    std::unordered_map<K, V> _data;
+    ccstd::unordered_map<K, V> _data;
 };
 
 } // namespace cc

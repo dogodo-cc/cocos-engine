@@ -30,6 +30,7 @@
 #include "base/Object.h"
 #include "base/TypeDef.h"
 #include "base/Value.h"
+#include "base/std/container/vector.h"
 #include "renderer/gfx-base/GFXDef.h"
 
 namespace cc {
@@ -59,7 +60,7 @@ struct CC_DLL RenderObject {
     float               depth = 0;
     const scene::Model *model = nullptr;
 };
-using RenderObjectList = vector<struct RenderObject>;
+using RenderObjectList = ccstd::vector<struct RenderObject>;
 
 struct CC_DLL RenderTargetInfo {
     uint width  = 0;
@@ -73,10 +74,10 @@ struct CC_DLL RenderPass {
     uint                   passIndex = 0;
     const scene::SubModel *subModel  = nullptr;
 };
-using RenderPassList = vector<RenderPass>;
+using RenderPassList = ccstd::vector<RenderPass>;
 
 using ColorDesc     = gfx::ColorAttachment;
-using ColorDescList = vector<ColorDesc>;
+using ColorDescList = ccstd::vector<ColorDesc>;
 
 using DepthStencilDesc = gfx::DepthStencilAttachment;
 
@@ -85,25 +86,25 @@ struct CC_DLL RenderPassDesc {
     ColorDescList    colorAttachments;
     DepthStencilDesc depthStencilAttachment;
 };
-using RenderPassDescList = vector<RenderPassDesc>;
+using RenderPassDescList = ccstd::vector<RenderPassDesc>;
 
 struct CC_DLL RenderTextureDesc {
-    String            name;
+    ccstd::string     name;
     gfx::TextureType  type   = gfx::TextureType::TEX2D;
     gfx::TextureUsage usage  = gfx::TextureUsage::COLOR_ATTACHMENT;
     gfx::Format       format = gfx::Format::UNKNOWN;
     int               width  = -1;
     int               height = -1;
 };
-using RenderTextureDescList = vector<RenderTextureDesc>;
+using RenderTextureDescList = ccstd::vector<RenderTextureDesc>;
 
 struct CC_DLL FrameBufferDesc {
-    String         name;
-    uint           renderPass = 0;
-    vector<String> colorTextures;
-    String         depthStencilTexture;
+    ccstd::string                name;
+    uint                         renderPass = 0;
+    ccstd::vector<ccstd::string> colorTextures;
+    ccstd::string                depthStencilTexture;
 };
-using FrameBufferDescList = vector<FrameBufferDesc>;
+using FrameBufferDescList = ccstd::vector<FrameBufferDesc>;
 
 enum class RenderFlowType : uint8_t {
     SCENE,
@@ -112,10 +113,10 @@ enum class RenderFlowType : uint8_t {
 };
 CC_ENUM_CONVERSION_OPERATOR(RenderFlowType)
 
-using RenderStageList = vector<RenderStage *>;
-using RenderFlowList  = vector<RenderFlow *>;
-using LightList       = vector<scene::Light *>;
-using UintList        = vector<uint>;
+using RenderStageList = ccstd::vector<RenderStage *>;
+using RenderFlowList  = ccstd::vector<RenderFlow *>;
+using LightList       = ccstd::vector<scene::Light *>;
+using UintList        = ccstd::vector<uint>;
 
 enum class CC_DLL RenderPassStage {
     DEFAULT = 100,
@@ -156,13 +157,13 @@ enum class CC_DLL RenderQueueSortMode {
 CC_ENUM_CONVERSION_OPERATOR(RenderQueueSortMode)
 
 struct CC_DLL RenderQueueDesc {
-    bool                isTransparent = false;
-    RenderQueueSortMode sortMode      = RenderQueueSortMode::FRONT_TO_BACK;
-    StringArray         stages;
+    bool                         isTransparent = false;
+    RenderQueueSortMode          sortMode      = RenderQueueSortMode::FRONT_TO_BACK;
+    ccstd::vector<ccstd::string> stages;
 };
-using RenderQueueDescList = std::vector<RenderQueueDesc>;
+using RenderQueueDescList = ccstd::vector<RenderQueueDesc>;
 
-uint getPhaseID(const String &phase);
+uint getPhaseID(const ccstd::string &phase);
 
 inline bool opaqueCompareFn(const RenderPass &a, const RenderPass &b) {
     if (a.hash != b.hash) {
@@ -188,7 +189,7 @@ inline bool transparentCompareFn(const RenderPass &a, const RenderPass &b) {
     return a.shaderID < b.shaderID;
 }
 
-inline uint convertPhase(const StringArray &stages) {
+inline uint convertPhase(const ccstd::vector<ccstd::string> &stages) {
     uint phase = 0;
     for (const auto &stage : stages) {
         phase |= getPhaseID(stage);
@@ -271,19 +272,20 @@ struct CC_DLL UBOLocalBatched {
     static constexpr uint                        BINDING           = static_cast<uint>(ModelLocalBindings::UBO_LOCAL);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformBlock               LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
 struct CC_DLL UBOLocal {
     static constexpr uint                        MAT_WORLD_OFFSET    = 0;
     static constexpr uint                        MAT_WORLD_IT_OFFSET = UBOLocal::MAT_WORLD_OFFSET + 16;
     static constexpr uint                        LIGHTINGMAP_UVPARAM = UBOLocal::MAT_WORLD_IT_OFFSET + 16;
-    static constexpr uint                        COUNT               = UBOLocal::LIGHTINGMAP_UVPARAM + 4;
+    static constexpr uint                        LOCAL_SHADOW_BIAS   = UBOLocal::LIGHTINGMAP_UVPARAM + 4;
+    static constexpr uint                        COUNT               = UBOLocal::LOCAL_SHADOW_BIAS + 4;
     static constexpr uint                        SIZE                = UBOLocal::COUNT * 4;
     static constexpr uint                        BINDING             = static_cast<uint>(ModelLocalBindings::UBO_LOCAL);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformBlock               LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
 struct CC_DLL UBOWorldBound {
@@ -294,7 +296,7 @@ struct CC_DLL UBOWorldBound {
     static constexpr uint                        BINDING                  = static_cast<uint>(ModelLocalBindings::UBO_LOCAL);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformBlock               LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
 struct CC_DLL UBOForwardLight {
@@ -308,7 +310,7 @@ struct CC_DLL UBOForwardLight {
     static constexpr uint                        BINDING                       = static_cast<uint>(ModelLocalBindings::UBO_FORWARD_LIGHTS);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformBlock               LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
 struct CC_DLL UBODeferredLight {
@@ -322,7 +324,7 @@ struct CC_DLL UBOSkinningTexture {
     static constexpr uint                        BINDING                    = static_cast<uint>(ModelLocalBindings::UBO_SKINNING_TEXTURE);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformBlock               LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
 struct CC_DLL UBOSkinningAnimation {
@@ -332,7 +334,7 @@ struct CC_DLL UBOSkinningAnimation {
     static constexpr uint                        BINDING                 = static_cast<uint>(ModelLocalBindings::UBO_SKINNING_ANIMATION);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformBlock               LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
 struct CC_DLL UBOSkinning {
@@ -342,7 +344,7 @@ struct CC_DLL UBOSkinning {
     static constexpr uint                        BINDING       = static_cast<uint>(ModelLocalBindings::UBO_SKINNING_TEXTURE);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformBlock               LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
 struct CC_DLL UBOMorph {
@@ -356,14 +358,14 @@ struct CC_DLL UBOMorph {
     static constexpr uint                        BINDING = static_cast<uint>(ModelLocalBindings::UBO_MORPH);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformBlock               LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
 struct CC_DLL UBOUILocal {
     static constexpr uint                        BINDING = static_cast<uint>(ModelLocalBindings::UBO_UI_LOCAL);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformBlock               LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
 enum class CC_DLL ForwardStagePriority {
@@ -403,7 +405,7 @@ enum class CC_DLL DeferredFlowPriority {
 };
 CC_ENUM_CONVERSION_OPERATOR(DeferredFlowPriority)
 
-struct CC_DLL UBOGlobal : public Object {
+struct CC_DLL UBOGlobal {
     static constexpr uint                        TIME_OFFSET        = 0;
     static constexpr uint                        SCREEN_SIZE_OFFSET = UBOGlobal::TIME_OFFSET + 4;
     static constexpr uint                        NATIVE_SIZE_OFFSET = UBOGlobal::SCREEN_SIZE_OFFSET + 4;
@@ -412,10 +414,10 @@ struct CC_DLL UBOGlobal : public Object {
     static constexpr uint                        BINDING            = static_cast<uint>(PipelineGlobalBindings::UBO_GLOBAL);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformBlock               LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
-struct CC_DLL UBOCamera : public Object {
+struct CC_DLL UBOCamera {
     static constexpr uint                        MAT_VIEW_OFFSET          = 0;
     static constexpr uint                        MAT_VIEW_INV_OFFSET      = UBOCamera::MAT_VIEW_OFFSET + 16;
     static constexpr uint                        MAT_PROJ_OFFSET          = UBOCamera::MAT_VIEW_INV_OFFSET + 16;
@@ -423,7 +425,8 @@ struct CC_DLL UBOCamera : public Object {
     static constexpr uint                        MAT_VIEW_PROJ_OFFSET     = UBOCamera::MAT_PROJ_INV_OFFSET + 16;
     static constexpr uint                        MAT_VIEW_PROJ_INV_OFFSET = UBOCamera::MAT_VIEW_PROJ_OFFSET + 16;
     static constexpr uint                        CAMERA_POS_OFFSET        = UBOCamera::MAT_VIEW_PROJ_INV_OFFSET + 16;
-    static constexpr uint                        SCREEN_SCALE_OFFSET      = UBOCamera::CAMERA_POS_OFFSET + 4;
+    static constexpr uint                        SURFACE_TRANSFORM_OFFSET = UBOCamera::CAMERA_POS_OFFSET + 4;
+    static constexpr uint                        SCREEN_SCALE_OFFSET      = UBOCamera::SURFACE_TRANSFORM_OFFSET + 4;
     static constexpr uint                        EXPOSURE_OFFSET          = UBOCamera::SCREEN_SCALE_OFFSET + 4;
     static constexpr uint                        MAIN_LIT_DIR_OFFSET      = UBOCamera::EXPOSURE_OFFSET + 4;
     static constexpr uint                        MAIN_LIT_COLOR_OFFSET    = UBOCamera::MAIN_LIT_DIR_OFFSET + 4;
@@ -439,10 +442,10 @@ struct CC_DLL UBOCamera : public Object {
     static constexpr uint                        BINDING                  = static_cast<uint>(PipelineGlobalBindings::UBO_CAMERA);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformBlock               LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
-struct CC_DLL UBOShadow : public Object {
+struct CC_DLL UBOShadow {
     static constexpr uint                        MAT_LIGHT_PLANE_PROJ_OFFSET                   = 0;
     static constexpr uint                        MAT_LIGHT_VIEW_OFFSET                         = MAT_LIGHT_PLANE_PROJ_OFFSET + 16;
     static constexpr uint                        MAT_LIGHT_VIEW_PROJ_OFFSET                    = UBOShadow::MAT_LIGHT_VIEW_OFFSET + 16;
@@ -459,14 +462,14 @@ struct CC_DLL UBOShadow : public Object {
     static constexpr uint                        BINDING                                       = static_cast<uint>(PipelineGlobalBindings::UBO_SHADOW);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformBlock               LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
 struct CC_DLL DescriptorSetLayoutInfos {
-    gfx::DescriptorSetLayoutBindingList               bindings;
-    unordered_map<String, gfx::UniformBlock>          blocks;
-    unordered_map<String, gfx::UniformSamplerTexture> samplers;
-    unordered_map<String, gfx::UniformStorageImage>   storeImages;
+    gfx::DescriptorSetLayoutBindingList                             bindings;
+    ccstd::unordered_map<ccstd::string, gfx::UniformBlock>          blocks;
+    ccstd::unordered_map<ccstd::string, gfx::UniformSamplerTexture> samplers;
+    ccstd::unordered_map<ccstd::string, gfx::UniformStorageImage>   storeImages;
 };
 extern CC_DLL DescriptorSetLayoutInfos globalDescriptorSetLayout;
 extern CC_DLL DescriptorSetLayoutInfos localDescriptorSetLayout;
@@ -498,88 +501,88 @@ bool supportsR32FloatTexture(gfx::Device *device);
 
 extern CC_DLL uint skyboxFlag;
 
-struct CC_DLL SHADOWMAP : public Object {
+struct CC_DLL SHADOWMAP {
     static constexpr uint                        BINDING = static_cast<uint>(PipelineGlobalBindings::SAMPLER_SHADOWMAP);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformSamplerTexture      LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
-struct CC_DLL ENVIRONMENT : public Object {
+struct CC_DLL ENVIRONMENT {
     static constexpr uint                        BINDING = static_cast<uint>(PipelineGlobalBindings::SAMPLER_ENVIRONMENT);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformSamplerTexture      LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
-struct CC_DLL SPOTLIGHTINGMAP : public Object {
+struct CC_DLL SPOTLIGHTINGMAP {
     static constexpr uint                        BINDING = static_cast<uint>(PipelineGlobalBindings::SAMPLER_SPOT_LIGHTING_MAP);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformSamplerTexture      LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
-struct CC_DLL DIFFUSEMAP : public Object {
+struct CC_DLL DIFFUSEMAP {
     static constexpr uint                        BINDING = static_cast<uint>(PipelineGlobalBindings::SAMPLER_DIFFUSEMAP);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformSamplerTexture      LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
-struct CC_DLL JOINTTEXTURE : public Object {
+struct CC_DLL JOINTTEXTURE {
     static constexpr uint                        BINDING = static_cast<uint>(ModelLocalBindings::SAMPLER_JOINTS);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformSamplerTexture      LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
-struct CC_DLL POSITIONMORPH : public Object {
+struct CC_DLL POSITIONMORPH {
     static constexpr uint                        BINDING = static_cast<uint>(ModelLocalBindings::SAMPLER_MORPH_POSITION);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformSamplerTexture      LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
-struct CC_DLL NORMALMORPH : public Object {
+struct CC_DLL NORMALMORPH {
     static constexpr uint                        BINDING = static_cast<uint>(ModelLocalBindings::SAMPLER_MORPH_NORMAL);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformSamplerTexture      LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
-struct CC_DLL TANGENTMORPH : public Object {
+struct CC_DLL TANGENTMORPH {
     static constexpr uint                        BINDING = static_cast<uint>(ModelLocalBindings::SAMPLER_MORPH_TANGENT);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformSamplerTexture      LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
-struct CC_DLL LIGHTMAPTEXTURE : public Object {
+struct CC_DLL LIGHTMAPTEXTURE {
     static constexpr uint                        BINDING = static_cast<uint>(ModelLocalBindings::SAMPLER_LIGHTMAP);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformSamplerTexture      LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
-struct CC_DLL SPRITETEXTURE : public Object {
+struct CC_DLL SPRITETEXTURE {
     static constexpr uint                        BINDING = static_cast<uint>(ModelLocalBindings::SAMPLER_SPRITE);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformSamplerTexture      LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
-struct CC_DLL REFLECTIONTEXTURE : public Object {
+struct CC_DLL REFLECTIONTEXTURE {
     static constexpr uint                        BINDING = static_cast<uint>(ModelLocalBindings::SAMPLER_REFLECTION);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformSamplerTexture      LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
-struct CC_DLL REFLECTIONSTORAGE : public Object {
+struct CC_DLL REFLECTIONSTORAGE {
     static constexpr uint                        BINDING = static_cast<uint>(ModelLocalBindings::STORAGE_REFLECTION);
     static const gfx::DescriptorSetLayoutBinding DESCRIPTOR;
     static const gfx::UniformStorageImage        LAYOUT;
-    static const String                          NAME;
+    static const ccstd::string                   NAME;
 };
 
 static constexpr uint CLUSTER_LIGHT_BINDING       = 4;

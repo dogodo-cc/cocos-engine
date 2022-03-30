@@ -49,9 +49,9 @@ void forEachFace(const ITextureCubeMipmap &mipmap, const ForEachFaceCallback &ca
 } // namespace
 
 /* static */
-TextureCube *TextureCube::fromTexture2DArray(const std::vector<Texture2D *> &textures) {
-    size_t                          nMipmaps = textures.size() / 6;
-    std::vector<ITextureCubeMipmap> mipmaps;
+TextureCube *TextureCube::fromTexture2DArray(const ccstd::vector<Texture2D *> &textures) {
+    size_t                            nMipmaps = textures.size() / 6;
+    ccstd::vector<ITextureCubeMipmap> mipmaps;
     mipmaps.reserve(nMipmaps);
     for (size_t i = 0; i < nMipmaps; i++) {
         size_t x = i * 6;
@@ -75,7 +75,7 @@ TextureCube::TextureCube() = default;
 
 TextureCube::~TextureCube() = default;
 
-void TextureCube::setMipmaps(const std::vector<ITextureCubeMipmap> &value) {
+void TextureCube::setMipmaps(const ccstd::vector<ITextureCubeMipmap> &value) {
     _mipmaps = value;
     setMipmapLevel(static_cast<uint32_t>(_mipmaps.size()));
     if (!_mipmaps.empty()) {
@@ -91,7 +91,6 @@ void TextureCube::setMipmaps(const std::vector<ITextureCubeMipmap> &value) {
             forEachFace(_mipmaps[level], [this, level](ImageAsset *face, TextureCube::FaceIndex faceIndex) {
                 assignImage(face, static_cast<uint32_t>(level), static_cast<uint32_t>(faceIndex));
             });
-            ;
         }
 
     } else {
@@ -104,7 +103,7 @@ void TextureCube::setMipmaps(const std::vector<ITextureCubeMipmap> &value) {
     }
 }
 
-void TextureCube::setMipmapsForJS(const std::vector<ITextureCubeMipmap> &value) {
+void TextureCube::setMipmapsForJS(const ccstd::vector<ITextureCubeMipmap> &value) {
     _mipmaps = value;
 }
 
@@ -224,7 +223,7 @@ gfx::TextureInfo TextureCube::getGfxTextureCreateInfo(gfx::TextureUsageBit usage
     return texInfo;
 }
 
-void TextureCube::initDefault(const cc::optional<std::string> &uuid) {
+void TextureCube::initDefault(const cc::optional<ccstd::string> &uuid) {
     Super::initDefault(uuid);
 
     auto *imageAsset = new ImageAsset();

@@ -20,13 +20,13 @@ import { Vec2 } from '../core/math';
  *
  */
 
-export enum StereoRendering_Type {
+enum StereoRendering_Type {
     SINGLE_PASS = 0,
     MUTLI_PASS = 1,
     OFF = 2
 }
 
-export enum FoveationRendering_Type {
+enum FoveationRendering_Type {
     None = 0,
     Low = 1, 
     Med = 2, 
@@ -34,28 +34,21 @@ export enum FoveationRendering_Type {
     Ext = 4
 }
 
-export enum IPDOffset_Type {
+enum IPDOffset_Type {
     Auto = 0,
     Device = 1, 
     Manual = 2
 }
 
-export enum AspectRatio_Type {
+enum AspectRatio_Type {
     Auto = 0,
     Manual = 1
-}
-
-export enum TrackingOriginMode_Type {
-    Unbond = 0,
-    Device = 1, 
-    Floor = 2
 }
 
 ccenum(StereoRendering_Type);
 ccenum(FoveationRendering_Type);
 ccenum(IPDOffset_Type);
 ccenum(AspectRatio_Type);
-ccenum(TrackingOriginMode_Type);
  
 @ccclass('cc.HMDCtrl')
 @help('i18n:cc.HMDCtrl')
@@ -73,10 +66,6 @@ export class HMDCtrl extends Component {
     protected _apectRatio : AspectRatio_Type = AspectRatio_Type.Auto;
     @serializable
     protected _ratio : Vec2 = new Vec2(1, 1);
-    @serializable
-    protected _trackingOriginMode : TrackingOriginMode_Type = TrackingOriginMode_Type.Unbond;
-    @serializable
-    protected _cameraYOffset : Number = 1.36144;
 
     @type(StereoRendering_Type)
     @displayOrder(1)
@@ -156,40 +145,6 @@ export class HMDCtrl extends Component {
         return this._ratio;
     }
 
-    @type(TrackingOriginMode_Type)
-    @displayOrder(7)
-    set trackingOriginMode (val) {
-        if (val === this._trackingOriginMode) {
-            return;
-        }
-        this._trackingOriginMode = val;
-    }
-    get trackingOriginMode () {
-        return this._trackingOriginMode;
-    }
-
-    @type(Number)
-    @visible(function (this: HMDCtrl) {
-        return this._trackingOriginMode !== TrackingOriginMode_Type.Floor;
-    })
-    @displayOrder(8)
-    set cameraYOffset (val) {
-        if (val === this._cameraYOffset) {
-            return;
-        }
-        this._cameraYOffset = val;
-    }
-    get cameraYOffset () {
-        return this._cameraYOffset;
-    }
-
-    public start () {
-
-    }
-
-    // update (deltaTime: number) {
-    //     // [4]
-    // }
 }
 
 /**

@@ -26,11 +26,12 @@
 #pragma once
 
 #include "GFXObject.h"
+#include "base/RefCounted.h"
 
 namespace cc {
 namespace gfx {
 
-class CC_DLL Shader : public GFXObject {
+class CC_DLL Shader : public GFXObject, public RefCounted {
 public:
     Shader();
     ~Shader() override;
@@ -38,7 +39,7 @@ public:
     void initialize(const ShaderInfo &info);
     void destroy();
 
-    inline const String &                    getName() const { return _name; }
+    inline const ccstd::string &             getName() const { return _name; }
     inline const ShaderStageList &           getStages() const { return _stages; }
     inline const AttributeList &             getAttributes() const { return _attributes; }
     inline const UniformBlockList &          getBlocks() const { return _blocks; }
@@ -53,7 +54,7 @@ protected:
     virtual void doInit(const ShaderInfo &info) = 0;
     virtual void doDestroy()                    = 0;
 
-    String                     _name;
+    ccstd::string              _name;
     ShaderStageList            _stages;
     AttributeList              _attributes;
     UniformBlockList           _blocks;

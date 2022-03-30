@@ -39,7 +39,7 @@ public:
     void initialize(int vulkanMinorVersion);
     void destroy();
 
-    void compileGLSL(ShaderStageFlagBit type, const String &source);
+    void compileGLSL(ShaderStageFlagBit type, const ccstd::string &source);
     void compressInputLocations(gfx::AttributeList &attributes);
 
     inline uint32_t *getOutputData() {
@@ -59,7 +59,7 @@ private:
 
     std::unique_ptr<glslang::TShader>  _shader{nullptr};
     std::unique_ptr<glslang::TProgram> _program{nullptr};
-    vector<uint32_t>                   _output;
+    ccstd::vector<uint32_t>            _output;
 
     static SPIRVUtils instance;
 };

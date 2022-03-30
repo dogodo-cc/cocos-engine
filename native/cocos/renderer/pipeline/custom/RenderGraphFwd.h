@@ -40,11 +40,16 @@ namespace cc {
 
 namespace render {
 
-enum class ResourceFlags : uint32_t;
-enum class TextureLayout;
-
 struct ResourceDesc;
 struct ResourceTraits;
+struct RenderSwapchain;
+struct ResourceStates;
+struct ManagedResource;
+struct ManagedTag;
+struct PersistentBufferTag;
+struct PersistentTextureTag;
+struct FramebufferTag;
+struct SwapchainTag;
 struct ResourceGraph;
 
 enum class AttachmentType;
@@ -73,6 +78,7 @@ struct RenderQueue;
 struct SceneData;
 struct Dispatch;
 struct Blit;
+struct Present;
 struct PresentPass;
 struct RenderData;
 struct RenderGraph;

@@ -34,6 +34,7 @@ import { BufferAccessor } from './buffer-accessor';
 import { assertID, warnID } from '../../core/platform/debug';
 import { assertIsTrue } from '../../core/data/utils/asserts';
 import { Pool } from '../../core/memop/pool';
+import { macro } from '../../core/platform/macro';
 
 interface IFreeEntry {
     offset: number;
@@ -49,30 +50,30 @@ const _entryPool = new Pool<IFreeEntry>(() => ({
  * @internal
  */
 export class StaticVBChunk {
-    // public ib: Uint16Array;
     constructor (
         public vertexAccessor: StaticVBAccessor,
         public bufferId: number,
+        public meshBuffer: MeshBuffer,
         public vertexOffset: number,
         public vb: Float32Array,
         indexCount: number,
     ) {
-        // this.ib = new Uint16Array(indexCount);
+        assertIsTrue(meshBuffer === vertexAccessor.getMeshBuffer(bufferId));
     }
-    // setIndexBuffer (indices: ArrayLike<number>) {
-    //     assertIsTrue(indices.length === this.ib.length);
-    //     for (let i = 0; i < indices.length; ++i) {
-    //         const vid = indices[i];
-    //         this.ib[i] = this.vertexOffset + vid;
-    //     }
-    // }
 }
 
 export class StaticVBAccessor extends BufferAccessor {
-    private _freeLists: IFreeEntry[][] = [];
+    public static IB_SCALE = 4; // ib size scale based on vertex count
 
-    public constructor (device: Device, attributes: Attribute[]) {
+    private _freeLists: IFreeEntry[][] = [];
+    private _vCount = 0;
+    private _iCount = 0;
+
+    public constructor (device: Device, attributes: Attribute[], vCount?: number, iCount?: number) {
         super(device, attributes);
+        this._vCount = vCount || Math.floor(macro.BATCHER2D_MEM_INCREMENT * 1024 / this._vertexFormatBytes);
+        this._iCount = iCount || (this._vCount * StaticVBAccessor.IB_SCALE);
+
         // Initialize first mesh buffer
         this._allocateBuffer();
     }
@@ -124,17 +125,14 @@ export class StaticVBAccessor extends BufferAccessor {
         }
     }
 
-    public appendIndices (vbChunk: StaticVBChunk) {
-        // const buf = this._buffers[vbChunk.bufferId];
-        // // Vertex format check
-        // // assertIsTrue(vbChunk.vb.byteLength / vbChunk.vertexCount === this.vertexFormatBytes);
-        // assertIsTrue(vbChunk.bufferId === this._currBID || this._currBID === -1);
-        // const vCount = vbChunk.ib.length;
-        // if (vCount) {
-        //     // Append index buffer
-        //     buf.iData.set(vbChunk.ib, buf.indexOffset);
-        //     buf.indexOffset += vbChunk.ib.length;
-        // }
+    public appendIndices (bufferId: number, indices: Uint16Array) {
+        const buf = this._buffers[bufferId];
+        const iCount = indices.length;
+        if (iCount) {
+            // Append index buffer
+            buf.iData.set(indices, buf.indexOffset);
+            buf.indexOffset += indices.length;
+        }
     }
 
     public allocateChunk (vertexCount: number, indexCount: number) {
@@ -172,7 +170,8 @@ export class StaticVBAccessor extends BufferAccessor {
             assertIsTrue(Number.isInteger(vertexOffset));
             const vb = new Float32Array(buf.vData.buffer, entry.offset, byteLength >> 2).fill(0);
             this._allocateChunkFromEntry(bid, eid, entry, byteLength);
-            return new StaticVBChunk(this, bid, vertexOffset, vb, indexCount);
+
+            return new StaticVBChunk(this, bid, buf, vertexOffset, vb, indexCount);
         } else {
             warnID(9004, byteLength);
             return null;
@@ -187,8 +186,8 @@ export class StaticVBAccessor extends BufferAccessor {
         if (bytes === 0) return;
         let recycled = false;
         let i = 0;
-        let prevEntry: IFreeEntry|null = null;
-        let nextEntry: IFreeEntry|null = freeList[i];
+        let prevEntry: IFreeEntry | null = null;
+        let nextEntry: IFreeEntry | null = freeList[i];
         // Loop entries
         while (nextEntry && nextEntry.offset < offset) {
             prevEntry = nextEntry;
@@ -226,7 +225,7 @@ export class StaticVBAccessor extends BufferAccessor {
                 nextEntry.offset = offset;
                 nextEntry.length += bytes;
             } else {
-            // Can not be merged
+                // Can not be merged
                 const newEntry = _entryPool.alloc();
                 newEntry.offset = offset;
                 newEntry.length = bytes;
@@ -271,7 +270,8 @@ export class StaticVBAccessor extends BufferAccessor {
         assertID(this._buffers.length === this._freeLists.length, 9003);
 
         const buffer = new MeshBuffer();
-        buffer.initialize(this._device, this._attributes);
+        const vFloatCount = this._vCount * this._floatsPerVertex;
+        buffer.initialize(this._device, this._attributes, vFloatCount, this._iCount);
         this._buffers.push(buffer);
         const entry = _entryPool.alloc();
         entry.offset = 0;

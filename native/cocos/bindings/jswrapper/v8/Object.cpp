@@ -32,17 +32,17 @@
     #include "Class.h"
     #include "ScriptEngine.h"
     #include "Utils.h"
+    #include "base/std/container/unordered_map.h"
 
     #include <array>
     #include <memory>
     #include <sstream>
-    #include <unordered_map>
 
     #define JSB_FUNC_DEFAULT_MAX_ARG_COUNT (10)
 
 namespace se {
 //NOLINTNEXTLINE
-std::unique_ptr<std::unordered_map<Object *, void *>> __objectMap; // Currently, the value `void*` is always nullptr
+std::unique_ptr<ccstd::unordered_map<Object *, void *>> __objectMap; // Currently, the value `void*` is always nullptr
 
 namespace {
 v8::Isolate *__isolate = nullptr; //NOLINT
@@ -99,7 +99,7 @@ void Object::setIsolate(v8::Isolate *isolate) {
 }
 
 void Object::setup() {
-    __objectMap = std::make_unique<std::unordered_map<Object *, void *>>();
+    __objectMap = std::make_unique<ccstd::unordered_map<Object *, void *>>();
 }
 
 void Object::cleanup() {
@@ -132,7 +132,7 @@ void Object::cleanup() {
     NativePtrToObjectMap::clear();
 
     if (__objectMap) {
-        std::vector<Object *> toReleaseObjects;
+        ccstd::vector<Object *> toReleaseObjects;
         for (const auto &e : *__objectMap) {
             obj = e.first;
             cls = obj->_getClass();
@@ -201,12 +201,11 @@ Object *Object::createArrayBufferObject(const void *data, size_t byteLength) {
 }
 
 /* static */
-Object *Object::createExternalArrayBufferObject(void* contents, size_t byteLength, BufferContentsFreeFunc freeFunc, void* freeUserData/* = nullptr*/) {
+Object *Object::createExternalArrayBufferObject(void *contents, size_t byteLength, BufferContentsFreeFunc freeFunc, void *freeUserData /* = nullptr*/) {
     std::shared_ptr<v8::BackingStore> backingStore = v8::ArrayBuffer::NewBackingStore(contents, byteLength, freeFunc, freeUserData);
-    Object* obj = nullptr;
-    v8::Local<v8::ArrayBuffer> jsobj = v8::ArrayBuffer::New(__isolate, backingStore);
-    if (!jsobj.IsEmpty())
-    {
+    Object *                          obj          = nullptr;
+    v8::Local<v8::ArrayBuffer>        jsobj        = v8::ArrayBuffer::New(__isolate, backingStore);
+    if (!jsobj.IsEmpty()) {
         obj = Object::_createJSObject(nullptr, jsobj);
     }
     return obj;
@@ -328,7 +327,7 @@ Object *Object::createUint8TypedArray(uint8_t *bytes, size_t byteLength) {
     return createTypedArray(TypedArrayType::UINT8, bytes, byteLength);
 }
 
-Object *Object::createJSONObject(const std::string &jsonStr) {
+Object *Object::createJSONObject(const ccstd::string &jsonStr) {
     v8::Local<v8::Context> context = __isolate->GetCurrentContext();
     Value                  strVal(jsonStr);
     v8::Local<v8::Value>   jsStr;
@@ -493,8 +492,8 @@ bool Object::isFunction() const {
 
 bool Object::_isNativeFunction() const { // NOLINT(readability-identifier-naming)
     if (isFunction()) {
-        std::string info = toString();
-        if (info.find("[native code]") != std::string::npos) {
+        ccstd::string info = toString();
+        if (info.find("[native code]") != ccstd::string::npos) {
             return true;
         }
     }
@@ -616,11 +615,11 @@ bool Object::call(const ValueArray &args, Object *thisObject, Value *rval /* = n
     size_t argc = args.size();
 
     std::array<v8::Local<v8::Value>, JSB_FUNC_DEFAULT_MAX_ARG_COUNT> argv;
-    std::unique_ptr<std::vector<v8::Local<v8::Value>>>               vecArgs;
+    std::unique_ptr<ccstd::vector<v8::Local<v8::Value>>>             vecArgs;
     v8::Local<v8::Value> *                                           pArgv = argv.data();
 
     if (argc > JSB_FUNC_DEFAULT_MAX_ARG_COUNT) {
-        vecArgs = std::make_unique<std::vector<v8::Local<v8::Value>>>();
+        vecArgs = std::make_unique<ccstd::vector<v8::Local<v8::Value>>>();
         vecArgs->resize(argc);
         pArgv = vecArgs->data();
     }
@@ -748,7 +747,7 @@ bool Object::setArrayElement(uint32_t index, const Value &data) {
     return ret.IsJust() && ret.FromJust();
 }
 
-bool Object::getAllKeys(std::vector<std::string> *allKeys) const {
+bool Object::getAllKeys(ccstd::vector<ccstd::string> *allKeys) const {
     assert(allKeys != nullptr);
     auto *                    thiz    = const_cast<Object *>(this);
     v8::Local<v8::Context>    context = __isolate->GetCurrentContext();
@@ -859,8 +858,8 @@ bool Object::detachObject(Object *obj) {
     return true;
 }
 
-std::string Object::toString() const {
-    std::string ret;
+ccstd::string Object::toString() const {
+    ccstd::string ret;
     if (isFunction() || isArray() || isTypedArray()) {
         v8::String::Utf8Value utf8(__isolate, const_cast<Object *>(this)->_obj.handle(__isolate));
         ret = *utf8;
@@ -872,13 +871,13 @@ std::string Object::toString() const {
     return ret;
 }
 
-std::string Object::toStringExt() const {
+ccstd::string Object::toStringExt() const {
     if (isFunction()) return "[function]";
     if (isArray()) return "[array]";
     if (isArrayBuffer()) return "[arraybuffer]";
     if (isTypedArray()) return "[typedarray]";
 
-    std::vector<std::string> keys;
+    ccstd::vector<ccstd::string> keys;
     getAllKeys(&keys);
     std::stringstream ss;
     ss << "{";

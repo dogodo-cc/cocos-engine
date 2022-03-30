@@ -20,15 +20,12 @@
 #endif
 
 #ifdef __cplusplus
-    #include <vector>
-    #include <string>
-    #include <map>
-    #include <list>
+    #include "base/std/container/strig.h"
     #include <memory>
     #include <functional>
     #include <thread>
     #include <mutex>
-    #include <unordered_map>
+    #include "base/std/container/unordered_map.h"
     #include <list>
     #include <algorithm>
     #include <cstdint>

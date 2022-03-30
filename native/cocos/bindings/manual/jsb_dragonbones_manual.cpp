@@ -24,17 +24,13 @@
 ****************************************************************************/
 
 #include "jsb_dragonbones_manual.h"
-#include "base/Config.h"
-
-#if USE_DRAGONBONES > 0
-
-    #include "cocos/bindings/auto/jsb_dragonbones_auto.h"
-    #include "cocos/bindings/auto/jsb_editor_support_auto.h"
-    #include "cocos/bindings/jswrapper/SeApi.h"
-    #include "cocos/bindings/manual/jsb_conversions.h"
-    #include "cocos/bindings/manual/jsb_global.h"
-    #include "cocos/bindings/manual/jsb_helper.h"
-    #include "cocos/editor-support/dragonbones-creator-support/CCDragonBonesHeaders.h"
+#include "cocos/bindings/auto/jsb_dragonbones_auto.h"
+#include "cocos/bindings/auto/jsb_editor_support_auto.h"
+#include "cocos/bindings/jswrapper/SeApi.h"
+#include "cocos/bindings/manual/jsb_conversions.h"
+#include "cocos/bindings/manual/jsb_global.h"
+#include "cocos/bindings/manual/jsb_helper.h"
+#include "cocos/editor-support/dragonbones-creator-support/CCDragonBonesHeaders.h"
 
 using namespace cc;
 
@@ -355,9 +351,9 @@ static bool js_cocos2dx_dragonbones_BaseFactory_parseTextureAtlasData(se::State 
     size_t         argc = args.size();
     CC_UNUSED bool ok   = true;
     if (argc == 2) {
-        const char *arg0 = nullptr;
-        void *      arg1 = nullptr;
-        std::string arg0_tmp;
+        const char *  arg0 = nullptr;
+        void *        arg1 = nullptr;
+        ccstd::string arg0_tmp;
         ok &= sevalue_to_native(args[0], &arg0_tmp);
         arg0 = arg0_tmp.c_str();
         ok &= seval_to_native_ptr(args[1], &arg1);
@@ -368,10 +364,10 @@ static bool js_cocos2dx_dragonbones_BaseFactory_parseTextureAtlasData(se::State 
         return true;
     }
     if (argc == 3) {
-        const char *arg0 = nullptr;
-        void *      arg1 = nullptr;
-        std::string arg2;
-        std::string arg0_tmp;
+        const char *  arg0 = nullptr;
+        void *        arg1 = nullptr;
+        ccstd::string arg2;
+        ccstd::string arg0_tmp;
         ok &= sevalue_to_native(args[0], &arg0_tmp);
         arg0 = arg0_tmp.c_str();
         ok &= seval_to_native_ptr(args[1], &arg1);
@@ -384,11 +380,11 @@ static bool js_cocos2dx_dragonbones_BaseFactory_parseTextureAtlasData(se::State 
         return true;
     }
     if (argc == 4) {
-        const char *arg0 = nullptr;
-        void *      arg1 = nullptr;
-        std::string arg2;
-        float       arg3 = 0;
-        std::string arg0_tmp;
+        const char *  arg0 = nullptr;
+        void *        arg1 = nullptr;
+        ccstd::string arg2;
+        float         arg3 = 0;
+        ccstd::string arg0_tmp;
         ok &= sevalue_to_native(args[0], &arg0_tmp);
         arg0 = arg0_tmp.c_str();
         ok &= seval_to_native_ptr(args[1], &arg1);
@@ -434,9 +430,9 @@ bool register_all_dragonbones_manual(se::Object *obj) {
     __jsb_dragonBones_BaseFactory_proto->defineFunction("parseTextureAtlasData", _SE(js_cocos2dx_dragonbones_BaseFactory_parseTextureAtlasData));
 
     dragonBones::BaseObject::setObjectRecycleOrDestroyCallback([](dragonBones::BaseObject *obj, int type) {
-        //std::string typeName = typeid(*obj).name();
+        //ccstd::string typeName = typeid(*obj).name();
 
-        se::Object* seObj = nullptr;
+        se::Object *seObj = nullptr;
 
         auto iter = se::NativePtrToObjectMap::find(obj);
         if (iter != se::NativePtrToObjectMap::end()) {
@@ -454,7 +450,7 @@ bool register_all_dragonbones_manual(se::Object *obj) {
             return;
         }
 
-        //std::string typeNameStr = typeName;
+        //ccstd::string typeNameStr = typeName;
         //auto cleanup = [seObj, typeNameStr](){
 
         //    auto se = se::ScriptEngine::getInstance();
@@ -494,7 +490,7 @@ bool register_all_dragonbones_manual(se::Object *obj) {
         factory->stopSchedule();
 
         // Copy the dragonbones object vector since vector element will be deleted in BaseObject destructor.
-        std::vector<dragonBones::BaseObject *> allDragonBonesObjects = dragonBones::BaseObject::getAllObjects();
+        ccstd::vector<dragonBones::BaseObject *> allDragonBonesObjects = dragonBones::BaseObject::getAllObjects();
         CC_LOG_INFO("Starting to cleanup dragonbones object, count: %d\n", (int)allDragonBonesObjects.size());
         for (auto dbObj : allDragonBonesObjects) {
             if (!dbObj->isInPool()) {
@@ -523,5 +519,3 @@ bool register_all_dragonbones_manual(se::Object *obj) {
 
     return true;
 }
-
-#endif

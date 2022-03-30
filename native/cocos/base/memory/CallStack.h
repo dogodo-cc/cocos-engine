@@ -32,9 +32,8 @@
         #include <Windows.h>
     #endif
     #include <cstdint>
-    #include <string>
-    #include <vector>
     #include "../Macros.h"
+    #include "base/std/container/string.h"
 
 namespace cc {
 
@@ -45,12 +44,12 @@ namespace cc {
  * A single frame of callstack.
  */
 struct CC_DLL StackFrame {
-    std::string module;
-    std::string file;
-    std::string function;
-    uint32_t    line{0};
+    ccstd::string module;
+    ccstd::string file;
+    ccstd::string function;
+    uint32_t      line{0};
 
-    std::string toString();
+    ccstd::string toString();
 };
 
 /**
@@ -58,10 +57,10 @@ struct CC_DLL StackFrame {
  */
 class CC_DLL CallStack {
 public:
-    static std::string basename(const std::string &path);
+    static ccstd::string basename(const ccstd::string &path);
 
-    static std::vector<void *>     backtrace();
-    static std::vector<StackFrame> backtraceSymbols(const std::vector<void *> &callstack);
+    static ccstd::vector<void *>     backtrace();
+    static ccstd::vector<StackFrame> backtraceSymbols(const ccstd::vector<void *> &callstack);
 
     #if CC_PLATFORM == CC_PLATFORM_WINDOWS
     static void initSym();

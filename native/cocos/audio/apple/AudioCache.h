@@ -29,11 +29,11 @@
 #import <OpenAL/al.h>
 
 #include <mutex>
-#include <string>
-#include <vector>
+#include "base/std/container/string.h"
 
 #include "audio/apple/AudioMacros.h"
 #include "base/Macros.h"
+#include "base/std/container/vector.h"
 
 namespace cc {
 class AudioEngineImpl;
@@ -83,18 +83,18 @@ protected:
     ALsizei  _queBufferSize[QUEUEBUFFER_NUM];
     uint32_t _queBufferFrames;
 
-    std::mutex                         _playCallbackMutex;
-    std::vector<std::function<void()>> _playCallbacks;
+    std::mutex                           _playCallbackMutex;
+    ccstd::vector<std::function<void()>> _playCallbacks;
 
     // loadCallbacks doesn't need mutex since it's invoked only in Cocos thread.
-    std::vector<std::function<void(bool)>> _loadCallbacks;
+    ccstd::vector<std::function<void(bool)>> _loadCallbacks;
 
     std::mutex _readDataTaskMutex;
 
     State _state;
 
     std::shared_ptr<bool> _isDestroyed;
-    std::string           _fileFullPath;
+    ccstd::string         _fileFullPath;
     unsigned int          _id;
     bool                  _isLoadingFinished;
     bool                  _isSkipReadDataTask;

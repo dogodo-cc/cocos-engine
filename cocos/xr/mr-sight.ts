@@ -27,12 +27,12 @@ import { VideoPlayer } from '../video/video-player';
  *
  */
 
-export enum Layer_Type {
+enum Layer_Type {
     BACK = 0,
     FRONT = 1,
 }
 
-export enum GateFit_Type {
+enum GateFit_Type {
     FILL = 0,
     OVERSCAN = 1,
     HORIZONTAL = 2,

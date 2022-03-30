@@ -53,11 +53,11 @@ public:
 
 class GLES3CmdBindStates final : public GLESCmd {
 public:
-    GLES3GPUPipelineState *         gpuPipelineState  = nullptr;
-    GLES3GPUInputAssembler *        gpuInputAssembler = nullptr;
-    vector<GLES3GPUDescriptorSet *> gpuDescriptorSets;
-    vector<uint32_t>                dynamicOffsets;
-    DynamicStates                   dynamicStates;
+    GLES3GPUPipelineState *                gpuPipelineState  = nullptr;
+    GLES3GPUInputAssembler *               gpuInputAssembler = nullptr;
+    ccstd::vector<GLES3GPUDescriptorSet *> gpuDescriptorSets;
+    ccstd::vector<uint32_t>                dynamicOffsets;
+    DynamicStates                          dynamicStates;
 
     GLES3CmdBindStates() : GLESCmd(GLESCmdType::BIND_STATES) {}
 
@@ -172,8 +172,7 @@ public:
     }
 };
 
-class GLES3CmdPackage final : public Object {
-public:
+struct GLES3CmdPackage {
     CachedArray<GLESCmdType>                   cmds;
     CachedArray<GLES3CmdBeginRenderPass *>     beginRenderPassCmds;
     CachedArray<GLES3CmdBindStates *>          bindStatesCmds;
@@ -186,7 +185,7 @@ public:
     CachedArray<GLES3CmdQuery *>               queryCmds;
 };
 
-class GLES3GPUCommandAllocator final : public Object {
+class GLES3GPUCommandAllocator final {
 public:
     CommandPool<GLES3CmdBeginRenderPass>     beginRenderPassCmdPool;
     CommandPool<GLES3CmdBindStates>          bindStatesCmdPool;

@@ -1,6 +1,6 @@
 // clang-format off
 #pragma once
-#include "base/Config.h"
+
 #include <type_traits>
 #include "cocos/bindings/jswrapper/SeApi.h"
 #include "cocos/bindings/manual/jsb_conversions.h"
@@ -143,4 +143,4 @@ SE_DECLARE_FUNC(js_geometry_Triangle_create);
 SE_DECLARE_FUNC(js_geometry_Triangle_fromPoints);
 SE_DECLARE_FUNC(js_geometry_Triangle_set);
 SE_DECLARE_FUNC(js_geometry_Triangle_Triangle);
-    // clang-format on
+// clang-format on

@@ -858,9 +858,9 @@ void cmdFuncGLES2DestroySampler(GLES2Device *device, GLES2GPUSampler *gpuSampler
 }
 
 void cmdFuncGLES2CreateShader(GLES2Device *device, GLES2GPUShader *gpuShader) {
-    GLenum glShaderType = 0;
-    String shaderTypeStr;
-    GLint  status;
+    GLenum        glShaderType = 0;
+    ccstd::string shaderTypeStr;
+    GLint         status;
 
     for (size_t i = 0; i < gpuShader->gpuStages.size(); ++i) {
         GLES2GPUShaderStage &gpuStage = gpuShader->gpuStages[i];
@@ -1043,7 +1043,7 @@ void cmdFuncGLES2CreateShader(GLES2Device *device, GLES2GPUShader *gpuShader) {
         if (offset) {
             glName[offset - glName] = '\0';
         }
-        String name = glName;
+        ccstd::string name = glName;
 
         bool isSampler = (glType == GL_SAMPLER_2D) ||
                          (glType == GL_SAMPLER_3D_OES) ||
@@ -1088,10 +1088,10 @@ void cmdFuncGLES2CreateShader(GLES2Device *device, GLES2GPUShader *gpuShader) {
     }
 
     // texture unit index mapping optimization
-    vector<GLES2GPUUniformSamplerTexture> glActiveSamplerTextures;
-    vector<GLint>                         glActiveSamplerLocations;
-    const GLESBindingMapping &            bindingMappings = device->bindingMappings();
-    unordered_map<String, uint32_t> &     texUnitCacheMap = device->stateCache()->texUnitCacheMap;
+    ccstd::vector<GLES2GPUUniformSamplerTexture>   glActiveSamplerTextures;
+    ccstd::vector<GLint>                           glActiveSamplerLocations;
+    const GLESBindingMapping &                     bindingMappings = device->bindingMappings();
+    ccstd::unordered_map<ccstd::string, uint32_t> &texUnitCacheMap = device->stateCache()->texUnitCacheMap;
 
     // sampler bindings in the flexible set comes strictly after buffer bindings
     // so we need to subtract the buffer count for these samplers
@@ -1120,7 +1120,7 @@ void cmdFuncGLES2CreateShader(GLES2Device *device, GLES2GPUShader *gpuShader) {
     }
 
     if (!glActiveSamplerTextures.empty()) {
-        vector<bool> usedTexUnits(device->getCapabilities().maxTextureUnits, false);
+        ccstd::vector<bool> usedTexUnits(device->getCapabilities().maxTextureUnits, false);
         // try to reuse existing mappings first
         for (uint32_t i = 0U; i < glActiveSamplerTextures.size(); i++) {
             GLES2GPUUniformSamplerTexture &glSamplerTexture = glActiveSamplerTextures[i];
@@ -1251,7 +1251,7 @@ void cmdFuncGLES2CreateInputAssembler(GLES2Device *device, GLES2GPUInputAssemble
         }
     }
 
-    vector<uint32_t> streamOffsets(device->getCapabilities().maxVertexAttributes, 0U);
+    ccstd::vector<uint32_t> streamOffsets(device->getCapabilities().maxVertexAttributes, 0U);
 
     gpuInputAssembler->glAttribs.resize(gpuInputAssembler->attributes.size());
     for (size_t i = 0; i < gpuInputAssembler->glAttribs.size(); ++i) {
@@ -1290,13 +1290,13 @@ void cmdFuncGLES2DestroyInputAssembler(GLES2Device *device, GLES2GPUInputAssembl
     gpuInputAssembler->glVAOs.clear();
 }
 
-static GLES2GPUFramebuffer::GLFramebufferInfo doCreateFramebuffer(GLES2Device *                    device,
-                                                                  const vector<GLES2GPUTexture *> &attachments, const uint32_t *colors, size_t colorCount,
+static GLES2GPUFramebuffer::GLFramebufferInfo doCreateFramebuffer(GLES2Device *                           device,
+                                                                  const ccstd::vector<GLES2GPUTexture *> &attachments, const uint32_t *colors, size_t colorCount,
                                                                   const GLES2GPUTexture *depthStencil,
                                                                   const uint32_t *       resolves            = nullptr,
                                                                   const GLES2GPUTexture *depthStencilResolve = nullptr,
                                                                   GLbitfield *           resolveMask         = nullptr) {
-    static vector<GLenum>                  drawBuffers;
+    static ccstd::vector<GLenum>           drawBuffers;
     GLES2GPUStateCache *                   cache = device->stateCache();
     GLES2GPUFramebuffer::GLFramebufferInfo res;
 
@@ -1319,7 +1319,7 @@ static GLES2GPUFramebuffer::GLFramebufferInfo doCreateFramebuffer(GLES2Device * 
         if (gpuResolveTexture) {
             if (autoResolve) {
                 GL_CHECK(glFramebufferTexture2DMultisampleEXT(GL_FRAMEBUFFER, static_cast<GLenum>(GL_COLOR_ATTACHMENT0 + j),
-                                                              gpuResolveTexture->glTarget, gpuResolveTexture->glTexture, 0,
+                                                              gpuResolveTexture->glTarget, gpuResolveTexture->glTexture, 0, /* fixed to 0, same for webgl 1 */
                                                               gpuColorTexture->glSamples));
                 continue;
             }
@@ -1384,7 +1384,7 @@ static GLES2GPUFramebuffer::GLFramebufferInfo doCreateFramebuffer(GLES2Device * 
     return res;
 }
 
-static GLES2GPUSwapchain *getSwapchainIfExists(const vector<GLES2GPUTexture *> &textures, const uint32_t *indices, size_t count) {
+static GLES2GPUSwapchain *getSwapchainIfExists(const ccstd::vector<GLES2GPUTexture *> &textures, const uint32_t *indices, size_t count) {
     GLES2GPUSwapchain *swapchain{nullptr};
     if (indices) {
         size_t offscreenCount{0};
@@ -1401,7 +1401,7 @@ static GLES2GPUSwapchain *getSwapchainIfExists(const vector<GLES2GPUTexture *> &
     return swapchain;
 }
 
-static void doCreateFramebufferInstance(GLES2Device *device, GLES2GPUFramebuffer *gpuFBO, const vector<uint32_t> &colors,
+static void doCreateFramebufferInstance(GLES2Device *device, GLES2GPUFramebuffer *gpuFBO, const ccstd::vector<uint32_t> &colors,
                                         uint32_t depthStencil, GLES2GPUFramebuffer::Framebuffer *outFBO,
                                         const uint32_t *resolves = nullptr, uint32_t depthStencilResolve = INVALID_BINDING) {
     GLES2GPUSwapchain *swapchain{getSwapchainIfExists(gpuFBO->gpuColorTextures, colors.data(), colors.size())};
@@ -1503,22 +1503,29 @@ void cmdFuncGLES2DestroyFramebuffer(GLES2Device *device, GLES2GPUFramebuffer *gp
 
 void cmdFuncGLES2BeginRenderPass(GLES2Device *device, uint32_t subpassIdx, GLES2GPURenderPass *gpuRenderPass, GLES2GPUFramebuffer *gpuFramebuffer,
                                  const Rect *renderArea, const Color *clearColors, float clearDepth, uint32_t clearStencil) {
-    static vector<GLenum> invalidAttachments;
+    static ccstd::vector<GLenum> invalidAttachments;
 
     GLES2GPUStateCache *cache         = device->stateCache();
     GLES2ObjectCache &  gfxStateCache = cache->gfxStateCache;
-    gfxStateCache.subpassIdx          = subpassIdx;
+
+    Rect realRenderArea;
+    gfxStateCache.subpassIdx = subpassIdx;
     if (subpassIdx) {
         gpuRenderPass  = gfxStateCache.gpuRenderPass;
         gpuFramebuffer = gfxStateCache.gpuFramebuffer;
-        renderArea     = &gfxStateCache.renderArea;
+        realRenderArea = gfxStateCache.renderArea;
         clearColors    = gfxStateCache.clearColors.data();
         clearDepth     = gfxStateCache.clearDepth;
         clearStencil   = gfxStateCache.clearStencil;
     } else {
+        realRenderArea.x      = renderArea->x;
+        realRenderArea.y      = renderArea->y;
+        realRenderArea.width  = renderArea->width << gpuFramebuffer->lodLevel;
+        realRenderArea.height = renderArea->height << gpuFramebuffer->lodLevel;
+
         gfxStateCache.gpuRenderPass  = gpuRenderPass;
         gfxStateCache.gpuFramebuffer = gpuFramebuffer;
-        gfxStateCache.renderArea     = *renderArea;
+        gfxStateCache.renderArea     = realRenderArea;
         gfxStateCache.clearColors.assign(clearColors, clearColors + gpuRenderPass->colorAttachments.size());
         gfxStateCache.clearDepth   = clearDepth;
         gfxStateCache.clearStencil = clearStencil;
@@ -1536,20 +1543,20 @@ void cmdFuncGLES2BeginRenderPass(GLES2Device *device, uint32_t subpassIdx, GLES2
         }
 
         if (subpassIdx == 0) {
-            if (cache->viewport.left != renderArea->x ||
-                cache->viewport.top != renderArea->y ||
-                cache->viewport.width != renderArea->width ||
-                cache->viewport.height != renderArea->height) {
-                GL_CHECK(glViewport(renderArea->x, renderArea->y, renderArea->width, renderArea->height));
-                cache->viewport.left   = renderArea->x;
-                cache->viewport.top    = renderArea->y;
-                cache->viewport.width  = renderArea->width;
-                cache->viewport.height = renderArea->height;
+            if (cache->viewport.left != realRenderArea.x ||
+                cache->viewport.top != realRenderArea.y ||
+                cache->viewport.width != realRenderArea.width ||
+                cache->viewport.height != realRenderArea.height) {
+                GL_CHECK(glViewport(realRenderArea.x, realRenderArea.y, realRenderArea.width, realRenderArea.height));
+                cache->viewport.left   = realRenderArea.x;
+                cache->viewport.top    = realRenderArea.y;
+                cache->viewport.width  = realRenderArea.width;
+                cache->viewport.height = realRenderArea.height;
             }
 
-            if (cache->scissor != *renderArea) {
-                GL_CHECK(glScissor(renderArea->x, renderArea->y, renderArea->width, renderArea->height));
-                cache->scissor = *renderArea;
+            if (cache->scissor != realRenderArea) {
+                GL_CHECK(glScissor(realRenderArea.x, realRenderArea.y, realRenderArea.width, realRenderArea.height));
+                cache->scissor = realRenderArea;
             }
         }
 
@@ -1687,7 +1694,7 @@ void cmdFuncGLES2BeginRenderPass(GLES2Device *device, uint32_t subpassIdx, GLES2
 }
 
 void cmdFuncGLES2EndRenderPass(GLES2Device *device) {
-    static vector<GLenum> invalidAttachments;
+    static ccstd::vector<GLenum> invalidAttachments;
 
     GLES2GPUStateCache * cache                = device->stateCache();
     GLES2ObjectCache &   gfxStateCache        = cache->gfxStateCache;
@@ -2037,11 +2044,11 @@ void cmdFuncGLES2BindState(GLES2Device *device, GLES2GPUPipelineState *gpuPipeli
 
     // bind descriptor sets
     if (gpuPipelineState && gpuPipelineState->gpuShader && gpuPipelineState->gpuPipelineLayout) {
-        size_t                     blockLen{gpuPipelineState->gpuShader->glBlocks.size()};
-        const vector<vector<int>> &dynamicOffsetIndices{gpuPipelineState->gpuPipelineLayout->dynamicOffsetIndices};
-        uint8_t *                  uniformBuffBase{nullptr};
-        uint8_t *                  uniformBuff{nullptr};
-        uint8_t *                  uniformCachedBuff{nullptr};
+        size_t                                   blockLen{gpuPipelineState->gpuShader->glBlocks.size()};
+        const ccstd::vector<ccstd::vector<int>> &dynamicOffsetIndices{gpuPipelineState->gpuPipelineLayout->dynamicOffsetIndices};
+        uint8_t *                                uniformBuffBase{nullptr};
+        uint8_t *                                uniformBuff{nullptr};
+        uint8_t *                                uniformCachedBuff{nullptr};
 
         for (size_t j = 0; j < blockLen; j++) {
             GLES2GPUUniformBlock &glBlock = gpuPipelineState->gpuShader->glBlocks[j];
@@ -2056,8 +2063,8 @@ void cmdFuncGLES2BindState(GLES2Device *device, GLES2GPUPipelineState *gpuPipeli
                 continue;
             }
 
-            uint32_t           offset                = 0U;
-            const vector<int> &dynamicOffsetIndexSet = dynamicOffsetIndices[glBlock.set];
+            uint32_t                  offset                = 0U;
+            const ccstd::vector<int> &dynamicOffsetIndexSet = dynamicOffsetIndices[glBlock.set];
             if (dynamicOffsetIndexSet.size() > glBlock.binding) {
                 int dynamicOffsetIndex = dynamicOffsetIndexSet[glBlock.binding];
                 if (dynamicOffsetIndex >= 0) offset = dynamicOffsets[dynamicOffsetIndex];
@@ -2459,10 +2466,10 @@ void cmdFuncGLES2Draw(GLES2Device *device, const DrawInfo &drawInfo) {
                 }
             } else if (drawInfo.vertexCount > 0) {
                 if (drawInfo.instanceCount == 0) {
-                    GL_CHECK(glDrawArrays(glPrimitive, drawInfo.firstIndex, drawInfo.vertexCount));
+                    GL_CHECK(glDrawArrays(glPrimitive, drawInfo.firstVertex, drawInfo.vertexCount));
                 } else {
                     if (device->constantRegistry()->useDrawInstanced) {
-                        GL_CHECK(glDrawArraysInstancedEXT(glPrimitive, drawInfo.firstIndex, drawInfo.vertexCount, drawInfo.instanceCount));
+                        GL_CHECK(glDrawArraysInstancedEXT(glPrimitive, drawInfo.firstVertex, drawInfo.vertexCount, drawInfo.instanceCount));
                     }
                 }
             }
@@ -2483,10 +2490,10 @@ void cmdFuncGLES2Draw(GLES2Device *device, const DrawInfo &drawInfo) {
                     }
                 } else if (draw.vertexCount > 0) {
                     if (draw.instanceCount == 0) {
-                        GL_CHECK(glDrawArrays(glPrimitive, draw.firstIndex, draw.vertexCount));
+                        GL_CHECK(glDrawArrays(glPrimitive, draw.firstVertex, draw.vertexCount));
                     } else {
                         if (device->constantRegistry()->useDrawInstanced) {
-                            GL_CHECK(glDrawArraysInstancedEXT(glPrimitive, draw.firstIndex, draw.vertexCount, draw.instanceCount));
+                            GL_CHECK(glDrawArraysInstancedEXT(glPrimitive, draw.firstVertex, draw.vertexCount, draw.instanceCount));
                         }
                     }
                 }

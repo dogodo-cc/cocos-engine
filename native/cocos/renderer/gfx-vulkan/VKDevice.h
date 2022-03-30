@@ -77,7 +77,7 @@ public:
     void acquire(Swapchain *const *swapchains, uint32_t count) override;
     void present() override;
 
-    inline bool checkExtension(const String &extension) const {
+    inline bool checkExtension(const ccstd::string &extension) const {
         return std::any_of(_extensions.begin(), _extensions.end(), [&extension](auto &ext) {
             return std::strcmp(ext, extension.c_str()) == 0;
         });
@@ -98,6 +98,8 @@ public:
     CCVKGPURecycleBin *       gpuRecycleBin();
     CCVKGPUStagingBufferPool *gpuStagingBufferPool();
     void                      waitAllFences();
+
+    void updateBackBufferCount(uint32_t backBufferCount);
 
 protected:
     static CCVKDevice *instance;
@@ -124,7 +126,7 @@ protected:
     PipelineState *      createPipelineState() override;
 
     Sampler *       createSampler(const SamplerInfo &info) override;
-    GeneralBarrier * createGeneralBarrier(const GeneralBarrierInfo &info) override;
+    GeneralBarrier *createGeneralBarrier(const GeneralBarrierInfo &info) override;
     TextureBarrier *createTextureBarrier(const TextureBarrierInfo &info) override;
 
     void copyBuffersToTexture(const uint8_t *const *buffers, Texture *dst, const BufferTextureCopy *regions, uint32_t count) override;
@@ -133,13 +135,13 @@ protected:
 
     void initFormatFeature();
 
-    CCVKGPUDevice *       _gpuDevice  = nullptr;
-    CCVKGPUContext *      _gpuContext = nullptr;
-    vector<CCVKTexture *> _depthStencilTextures;
+    CCVKGPUDevice *              _gpuDevice  = nullptr;
+    CCVKGPUContext *             _gpuContext = nullptr;
+    ccstd::vector<CCVKTexture *> _depthStencilTextures;
 
-    vector<CCVKGPUFencePool *>         _gpuFencePools;
-    vector<CCVKGPURecycleBin *>        _gpuRecycleBins;
-    vector<CCVKGPUStagingBufferPool *> _gpuStagingBufferPools;
+    ccstd::vector<CCVKGPUFencePool *>         _gpuFencePools;
+    ccstd::vector<CCVKGPURecycleBin *>        _gpuRecycleBins;
+    ccstd::vector<CCVKGPUStagingBufferPool *> _gpuStagingBufferPools;
 
     CCVKGPUBufferHub *       _gpuBufferHub{nullptr};
     CCVKGPUTransportHub *    _gpuTransportHub{nullptr};
@@ -149,8 +151,8 @@ protected:
     CCVKGPUFramebufferHub *  _gpuFramebufferHub{nullptr};
     CCVKGPUDescriptorSetHub *_gpuDescriptorSetHub{nullptr};
 
-    vector<const char *> _layers;
-    vector<const char *> _extensions;
+    ccstd::vector<const char *> _layers;
+    ccstd::vector<const char *> _extensions;
 };
 
 } // namespace gfx

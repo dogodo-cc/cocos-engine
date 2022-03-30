@@ -64,14 +64,14 @@ public:
     void            restoreContext() override;
     void            clearRect(float /*x*/, float /*y*/, float w, float h) override;
     void            fill() override;
-    void            setLineCap(const std::string &lineCap) override;
-    void            setLineJoin(const std::string &lineJoin) override;
+    void            setLineCap(const ccstd::string &lineCap) override;
+    void            setLineJoin(const ccstd::string &lineJoin) override;
     void            rect(float x, float y, float w, float h) override;
     void            fillRect(float x, float y, float w, float h) override;
-    void            fillText(const std::string &text, float x, float y, float /*maxWidth*/) override;
-    void            strokeText(const std::string &text, float /*x*/, float /*y*/, float /*maxWidth*/) override;
-    Size            measureText(const std::string &text) override;
-    void            updateFont(const std::string &fontName, float fontSize, bool bold, bool italic, bool oblique, bool smallCaps) override;
+    void            fillText(const ccstd::string &text, float x, float y, float /*maxWidth*/) override;
+    void            strokeText(const ccstd::string &text, float /*x*/, float /*y*/, float /*maxWidth*/) override;
+    Size            measureText(const ccstd::string &text) override;
+    void            updateFont(const ccstd::string &fontName, float fontSize, bool bold, bool italic, bool oblique, bool smallCaps) override;
     void            setTextAlign(CanvasTextAlign align) override;
     void            setTextBaseline(CanvasTextBaseline baseline) override;
     void            setFillStyle(float r, float g, float b, float a) override;
@@ -79,9 +79,9 @@ public:
     void            setLineWidth(float lineWidth) override;
     const cc::Data &getDataRef() const override;
     void            fillImageData(const Data &imageData, float imageWidth, float imageHeight, float offsetX, float offsetY) override;
+    void            updateData() override;
 
 private:
-    void fillData();
     void unMultiplyAlpha(unsigned char *ptr, ssize_t size);
 
 public:

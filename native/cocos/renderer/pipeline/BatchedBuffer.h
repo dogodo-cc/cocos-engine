@@ -27,6 +27,8 @@
 
 #include <array>
 #include "Define.h"
+#include "base/RefCounted.h"
+#include "base/std/container/unordered_map.h"
 
 namespace cc {
 namespace scene {
@@ -38,7 +40,7 @@ namespace pipeline {
 
 struct CC_DLL BatchedItem {
     gfx::BufferList                           vbs;
-    vector<uint8_t *>                         vbDatas;
+    ccstd::vector<uint8_t *>                  vbDatas;
     gfx::Buffer *                             indexBuffer = nullptr;
     float *                                   indexData   = nullptr;
     uint                                      vbCount     = 0;
@@ -50,10 +52,10 @@ struct CC_DLL BatchedItem {
     const scene::Pass *                       pass          = nullptr;
     gfx::Shader *                             shader        = nullptr;
 };
-using BatchedItemList   = vector<BatchedItem>;
-using DynamicOffsetList = vector<uint>;
+using BatchedItemList   = ccstd::vector<BatchedItem>;
+using DynamicOffsetList = ccstd::vector<uint>;
 
-class CC_DLL BatchedBuffer : public Object {
+class CC_DLL BatchedBuffer : public RefCounted {
 public:
     static BatchedBuffer *get(scene::Pass *pass);
     static BatchedBuffer *get(scene::Pass *pass, uint extraKey);
@@ -72,11 +74,11 @@ public:
     inline const DynamicOffsetList &getDynamicOffset() const { return _dynamicOffsets; }
 
 private:
-    static map<scene::Pass *, map<uint, BatchedBuffer *>> buffers;
-    DynamicOffsetList                                     _dynamicOffsets;
-    BatchedItemList                                       _batches;
-    const scene::Pass *                                   _pass   = nullptr;
-    gfx::Device *                                         _device = nullptr;
+    static ccstd::unordered_map<scene::Pass *, ccstd::unordered_map<uint, BatchedBuffer *>> buffers;
+    DynamicOffsetList                                                   _dynamicOffsets;
+    BatchedItemList                                                     _batches;
+    const scene::Pass *                                                 _pass   = nullptr;
+    gfx::Device *                                                       _device = nullptr;
 };
 
 } // namespace pipeline

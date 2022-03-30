@@ -46,7 +46,7 @@ namespace scene {
 
 namespace {
 
-std::string serializeBlendState(const gfx::BlendState &bs) {
+ccstd::string serializeBlendState(const gfx::BlendState &bs) {
     std::stringstream res;
     res << ",bs," << bs.isA2C;
     for (const auto &t : bs.targets) {
@@ -56,13 +56,13 @@ std::string serializeBlendState(const gfx::BlendState &bs) {
     return res.str();
 }
 
-std::string serializeRasterizerState(const gfx::RasterizerState &rs) {
+ccstd::string serializeRasterizerState(const gfx::RasterizerState &rs) {
     std::stringstream res;
     res << ",rs," << static_cast<uint32_t>(rs.cullMode) << "," << static_cast<uint32_t>(rs.depthBias) << "," << static_cast<uint32_t>(rs.isFrontFaceCCW);
     return res.str();
 }
 
-std::string serializeDepthStencilState(const gfx::DepthStencilState &dss) {
+ccstd::string serializeDepthStencilState(const gfx::DepthStencilState &dss) {
     std::stringstream res;
     res << ",dss," << static_cast<uint32_t>(dss.depthTest) << "," << static_cast<uint32_t>(dss.depthWrite) << "," << static_cast<uint32_t>(dss.depthFunc);
     res << "," << static_cast<uint32_t>(dss.stencilTestFront) << "," << static_cast<uint32_t>(dss.stencilFuncFront) << "," << static_cast<uint32_t>(dss.stencilRefFront) << "," << static_cast<uint32_t>(dss.stencilReadMaskFront);
@@ -108,15 +108,15 @@ void Pass::fillPipelineInfo(Pass *pass, const IPassInfoFull &info) {
 
 /* static */
 uint64_t Pass::getPassHash(Pass *pass) {
-    const std::string &shaderKey = ProgramLib::getInstance()->getKey(pass->getProgram(), pass->getDefines());
-    std::stringstream  res;
+    const ccstd::string &shaderKey = ProgramLib::getInstance()->getKey(pass->getProgram(), pass->getDefines());
+    std::stringstream    res;
     res << shaderKey << "," << static_cast<uint32_t>(pass->_primitive) << "," << static_cast<uint32_t>(pass->_dynamicStates);
     res << serializeBlendState(pass->_blendState);
     res << serializeDepthStencilState(pass->_depthStencilState);
     res << serializeRasterizerState(pass->_rs);
 
-    std::string str{res.str()};
-    std::size_t seed = 666;
+    ccstd::string str{res.str()};
+    std::size_t   seed = 666;
     boost::hash_range(seed, str.begin(), str.end());
     return static_cast<uint32_t>(seed);
 }
@@ -137,7 +137,7 @@ void Pass::initialize(const IPassInfoFull &info) {
     tryCompile();
 }
 
-uint32_t Pass::getHandle(const std::string &name, uint32_t offset /* = 0 */, gfx::Type targetType /* = gfx::Type::UNKNOWN */) const {
+uint32_t Pass::getHandle(const ccstd::string &name, uint32_t offset /* = 0 */, gfx::Type targetType /* = gfx::Type::UNKNOWN */) const {
     uint32_t handle = 0;
     auto     iter   = _propertyHandleMap.find(name); // handle = _propertyHandleMap[name];
     if (iter == _propertyHandleMap.end()) {
@@ -154,7 +154,7 @@ uint32_t Pass::getHandle(const std::string &name, uint32_t offset /* = 0 */, gfx
     return handle + offset;
 }
 
-uint32_t Pass::getBinding(const std::string &name) const {
+uint32_t Pass::getBinding(const ccstd::string &name) const {
     uint32_t handle = getHandle(name);
     if (0 == handle) {
         return -1;
@@ -285,7 +285,7 @@ void Pass::destroy() {
     _descriptorSet->destroy();
 }
 
-void Pass::resetUniform(const std::string &name) {
+void Pass::resetUniform(const ccstd::string &name) {
     const uint32_t handle = getHandle(name);
     if (0 == handle) {
         return;
@@ -303,8 +303,8 @@ void Pass::resetUniform(const std::string &name) {
 
     if (givenDefaultOpt.has_value()) {
         const auto &value = givenDefaultOpt.value();
-        if (cc::holds_alternative<std::vector<float>>(value)) {
-            const auto &floatArr = cc::get<std::vector<float>>(value);
+        if (cc::holds_alternative<ccstd::vector<float>>(value)) {
+            const auto &floatArr = cc::get<ccstd::vector<float>>(value);
             auto        iter     = type2writer.find(type);
             if (iter != type2writer.end()) {
                 iter->second(block.data, floatArr.data(), static_cast<int32_t>(ofs));
@@ -315,20 +315,20 @@ void Pass::resetUniform(const std::string &name) {
     _rootBufferDirty = true;
 }
 
-void Pass::resetTexture(const std::string &name, index_t index /* = CC_INVALID_INDEX */) {
+void Pass::resetTexture(const ccstd::string &name, index_t index /* = CC_INVALID_INDEX */) {
     const uint32_t handle = getHandle(name);
     if (0 == handle) {
         return;
     }
     const gfx::Type type    = Pass::getTypeFromHandle(handle);
     const uint32_t  binding = Pass::getBindingFromHandle(handle);
-    std::string     texName;
+    ccstd::string   texName;
     IPropertyInfo * info = nullptr;
     auto            iter = _properties.find(name);
     if (iter != _properties.end()) {
         if (iter->second.value.has_value()) {
-            info                 = &iter->second;
-            std::string *pStrVal = cc::get_if<std::string>(&iter->second.value.value());
+            info                   = &iter->second;
+            ccstd::string *pStrVal = cc::get_if<ccstd::string>(&iter->second.value.value());
             if (pStrVal != nullptr) {
                 texName = (*pStrVal) + "-texture";
             }
@@ -364,7 +364,7 @@ void Pass::resetUBOs() {
             const auto &   block        = _blocks[u.binding];
             const auto &   info         = _properties[cur.name];
             const auto &   givenDefault = info.value;
-            const auto &   value        = (givenDefault.has_value() ? cc::get<std::vector<float>>(givenDefault.value()) : getDefaultFloatArrayFromType(cur.type));
+            const auto &   value        = (givenDefault.has_value() ? cc::get<ccstd::vector<float>>(givenDefault.value()) : getDefaultFloatArrayFromType(cur.type));
             const uint32_t size         = (gfx::getTypeSize(cur.type) >> 2) * cur.count;
             for (size_t k = 0; (k + value.size()) <= size; k += value.size()) {
                 std::copy(value.begin(), value.end(), block.data + ofs + k);
@@ -404,7 +404,7 @@ gfx::Shader *Pass::getShaderVariant() {
     return getShaderVariant({});
 }
 
-gfx::Shader *Pass::getShaderVariant(const std::vector<IMacroPatch> &patches) {
+gfx::Shader *Pass::getShaderVariant(const ccstd::vector<IMacroPatch> &patches) {
     if (!_shader && !tryCompile()) {
         CC_LOG_WARNING("pass resources incomplete");
         return nullptr;
@@ -423,7 +423,6 @@ gfx::Shader *Pass::getShaderVariant(const std::vector<IMacroPatch> &patches) {
         }
     }
 #endif
-
 
     auto *pipeline = _root->getPipeline();
     for (const auto &patch : patches) {
@@ -509,13 +508,13 @@ void Pass::doInit(const IPassInfoFull &info, bool /*copyDefines*/ /* = false */)
     _descriptorSet = _device->createDescriptorSet(dsInfo);
 
     // calculate total size required
-    const auto &                blocks     = _shaderInfo->blocks;
-    const auto *                tmplInfo   = programLib->getTemplateInfo(info.program);
-    const std::vector<int32_t> &blockSizes = tmplInfo->blockSizes;
-    const auto &                handleMap  = tmplInfo->handleMap;
+    const auto &                  blocks     = _shaderInfo->blocks;
+    const auto *                  tmplInfo   = programLib->getTemplateInfo(info.program);
+    const ccstd::vector<int32_t> &blockSizes = tmplInfo->blockSizes;
+    const auto &                  handleMap  = tmplInfo->handleMap;
 
-    const auto            alignment = device->getCapabilities().uboOffsetAlignment;
-    std::vector<uint32_t> startOffsets;
+    const auto              alignment = device->getCapabilities().uboOffsetAlignment;
+    ccstd::vector<uint32_t> startOffsets;
     startOffsets.reserve(blocks.size());
     uint32_t lastSize   = 0;
     uint32_t lastOffset = 0;
@@ -563,9 +562,9 @@ void Pass::doInit(const IPassInfoFull &info, bool /*copyDefines*/ /* = false */)
         _descriptorSet->bindBuffer(binding, bufferView);
     }
     // store handles
-    _propertyHandleMap                            = handleMap;
-    auto &                        directHandleMap = _propertyHandleMap;
-    Record<std::string, uint32_t> indirectHandleMap;
+    _propertyHandleMap                              = handleMap;
+    auto &                          directHandleMap = _propertyHandleMap;
+    Record<ccstd::string, uint32_t> indirectHandleMap;
     for (const auto &properties : _properties) {
         if (!properties.second.handleInfo.has_value()) {
             continue;

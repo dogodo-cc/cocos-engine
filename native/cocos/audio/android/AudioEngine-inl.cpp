@@ -34,13 +34,12 @@
 #include <sys/types.h>
 #include <mutex>
 #include <thread>
-#include <unordered_map>
 
+#include "application/ApplicationManager.h"
 #include "audio/include/AudioEngine.h"
 #include "base/Log.h"
 #include "base/Scheduler.h"
 #include "base/UTF8.h"
-#include "application/ApplicationManager.h"
 #include "platform/android/FileUtils-android.h"
 #include "platform/java/jni/JniHelper.h"
 #include "platform/java/jni/JniImp.h"
@@ -92,7 +91,7 @@ private:
 
 static CallerThreadUtils gCallerThreadUtils;
 
-static int fdGetter(const std::string &url, off_t *start, off_t *length) {
+static int fdGetter(const ccstd::string &url, off_t *start, off_t *length) {
     int fd = -1;
     if (cc::FileUtilsAndroid::getObbFile() != nullptr) {
         int64_t startV;
@@ -102,7 +101,7 @@ static int fdGetter(const std::string &url, off_t *start, off_t *length) {
         *length = static_cast<off_t>(lenV);
     }
     if (fd <= 0) {
-        auto* asset = AAssetManager_open(cc::FileUtilsAndroid::getAssetManager(), url.c_str(), AASSET_MODE_UNKNOWN);
+        auto *asset = AAssetManager_open(cc::FileUtilsAndroid::getAssetManager(), url.c_str(), AASSET_MODE_UNKNOWN);
         // open asset as file descriptor
         fd = AAsset_openFileDescriptor(asset, start, length);
         AAsset_close(asset);
@@ -198,7 +197,7 @@ void AudioEngineImpl::setAudioFocusForAllPlayers(bool isFocus) {
     }
 }
 
-int AudioEngineImpl::play2d(const std::string &filePath, bool loop, float volume) {
+int AudioEngineImpl::play2d(const ccstd::string &filePath, bool loop, float volume) {
     ALOGV("play2d, _audioPlayers.size=%d", (int)_audioPlayers.size());
     auto audioId = AudioEngine::INVALID_AUDIO_ID;
 
@@ -211,7 +210,7 @@ int AudioEngineImpl::play2d(const std::string &filePath, bool loop, float volume
 
         audioId = _audioIDIndex++;
 
-        auto* player = _audioPlayerProvider->getAudioPlayer(fullPath);
+        auto *player = _audioPlayerProvider->getAudioPlayer(fullPath);
         if (player != nullptr) {
             player->setId(audioId);
             _audioPlayers.insert(std::make_pair(audioId, player));
@@ -261,7 +260,7 @@ int AudioEngineImpl::play2d(const std::string &filePath, bool loop, float volume
 void AudioEngineImpl::setVolume(int audioID, float volume) {
     auto iter = _audioPlayers.find(audioID);
     if (iter != _audioPlayers.end()) {
-        auto* player = iter->second;
+        auto *player = iter->second;
         player->setVolume(volume);
     }
 }
@@ -269,7 +268,7 @@ void AudioEngineImpl::setVolume(int audioID, float volume) {
 void AudioEngineImpl::setLoop(int audioID, bool loop) {
     auto iter = _audioPlayers.find(audioID);
     if (iter != _audioPlayers.end()) {
-        auto* player = iter->second;
+        auto *player = iter->second;
         player->setLoop(loop);
     }
 }
@@ -277,7 +276,7 @@ void AudioEngineImpl::setLoop(int audioID, bool loop) {
 void AudioEngineImpl::pause(int audioID) {
     auto iter = _audioPlayers.find(audioID);
     if (iter != _audioPlayers.end()) {
-        auto* player = iter->second;
+        auto *player = iter->second;
         player->pause();
     }
 }
@@ -285,7 +284,7 @@ void AudioEngineImpl::pause(int audioID) {
 void AudioEngineImpl::resume(int audioID) {
     auto iter = _audioPlayers.find(audioID);
     if (iter != _audioPlayers.end()) {
-        auto* player = iter->second;
+        auto *player = iter->second;
         player->resume();
     }
 }
@@ -293,7 +292,7 @@ void AudioEngineImpl::resume(int audioID) {
 void AudioEngineImpl::stop(int audioID) {
     auto iter = _audioPlayers.find(audioID);
     if (iter != _audioPlayers.end()) {
-        auto* player = iter->second;
+        auto *player = iter->second;
         player->stop();
     }
 }
@@ -306,14 +305,14 @@ void AudioEngineImpl::stopAll() {
     // Create a temporary vector for storing all players since
     // p->stop() will trigger _audioPlayers.erase,
     // and it will cause a crash as it's already in for loop
-    std::vector<IAudioPlayer *> players;
+    ccstd::vector<IAudioPlayer *> players;
     players.reserve(_audioPlayers.size());
 
     for (const auto &e : _audioPlayers) {
         players.push_back(e.second);
     }
 
-    for (auto* p : players) {
+    for (auto *p : players) {
         p->stop();
     }
 }
@@ -321,13 +320,13 @@ void AudioEngineImpl::stopAll() {
 float AudioEngineImpl::getDuration(int audioID) {
     auto iter = _audioPlayers.find(audioID);
     if (iter != _audioPlayers.end()) {
-        auto* player = iter->second;
+        auto *player = iter->second;
         return player->getDuration();
     }
     return 0.0F;
 }
 
-float AudioEngineImpl::getDurationFromFile(const std::string &filePath) {
+float AudioEngineImpl::getDurationFromFile(const ccstd::string &filePath) {
     if (_audioPlayerProvider != nullptr) {
         auto fullPath = FileUtils::getInstance()->fullPathForFilename(filePath);
         return _audioPlayerProvider->getDurationFromFile(fullPath);
@@ -338,7 +337,7 @@ float AudioEngineImpl::getDurationFromFile(const std::string &filePath) {
 float AudioEngineImpl::getCurrentTime(int audioID) {
     auto iter = _audioPlayers.find(audioID);
     if (iter != _audioPlayers.end()) {
-        auto* player = iter->second;
+        auto *player = iter->second;
         return player->getPosition();
     }
     return 0.0F;
@@ -347,19 +346,19 @@ float AudioEngineImpl::getCurrentTime(int audioID) {
 bool AudioEngineImpl::setCurrentTime(int audioID, float time) {
     auto iter = _audioPlayers.find(audioID);
     if (iter != _audioPlayers.end()) {
-        auto* player = iter->second;
+        auto *player = iter->second;
         return player->setPosition(time);
     }
     return false;
 }
 
-void AudioEngineImpl::setFinishCallback(int audioID, const std::function<void(int, const std::string &)> &callback) {
+void AudioEngineImpl::setFinishCallback(int audioID, const std::function<void(int, const ccstd::string &)> &callback) {
     _callbackMap[audioID] = callback;
 }
 
-void AudioEngineImpl::preload(const std::string &filePath, const std::function<void(bool)> &callback) {
+void AudioEngineImpl::preload(const ccstd::string &filePath, const std::function<void(bool)> &callback) {
     if (_audioPlayerProvider != nullptr) {
-        std::string fullPath = FileUtils::getInstance()->fullPathForFilename(filePath);
+        ccstd::string fullPath = FileUtils::getInstance()->fullPathForFilename(filePath);
         _audioPlayerProvider->preloadEffect(fullPath, [callback](bool succeed, const PcmData & /*data*/) {
             if (callback != nullptr) {
                 callback(succeed);
@@ -372,9 +371,9 @@ void AudioEngineImpl::preload(const std::string &filePath, const std::function<v
     }
 }
 
-void AudioEngineImpl::uncache(const std::string &filePath) {
+void AudioEngineImpl::uncache(const ccstd::string &filePath) {
     if (_audioPlayerProvider != nullptr) {
-        std::string fullPath = FileUtils::getInstance()->fullPathForFilename(filePath);
+        ccstd::string fullPath = FileUtils::getInstance()->fullPathForFilename(filePath);
         _audioPlayerProvider->clearPcmCache(fullPath);
     }
 }

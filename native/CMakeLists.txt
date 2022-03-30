@@ -27,6 +27,7 @@ cc_set_if_undefined(USE_JOB_SYSTEM_TASKFLOW  OFF)
 cc_set_if_undefined(USE_JOB_SYSTEM_TBB       OFF)
 cc_set_if_undefined(USE_PHYSICS_PHYSX        OFF)
 cc_set_if_undefined(USE_MODULES              OFF)
+cc_set_if_undefined(USE_SERVER_MODE          OFF)
 
 add_definitions()
 
@@ -43,6 +44,13 @@ elseif(MACOSX OR IOS)
     cc_set_if_undefined(CC_USE_VULKAN OFF)
     cc_set_if_undefined(CC_USE_GLES3 OFF)
     cc_set_if_undefined(CC_USE_GLES2 OFF)
+endif()
+
+if(USE_SERVER_MODE)
+    set(CC_USE_VULKAN OFF)
+    set(CC_USE_GLES3 OFF)
+    set(CC_USE_GLES2 OFF)
+    add_definitions(-DCC_SERVER_MODE)
 endif()
 
 if(USE_PHYSICS_PHYSX)
@@ -116,6 +124,7 @@ cc_inspect_values(
     USE_PHYSICS_PHYSX
     USE_JOB_SYSTEM_TBB
     USE_JOB_SYSTEM_TASKFLOW
+    USE_SERVER_MODE
 )
 
 ################################# external source code ################################
@@ -319,6 +328,14 @@ cocos_source_files(
     cocos/base/ThreadPool.h
     cocos/base/TypeDef.h
     cocos/base/Variant.h
+    cocos/base/std/container/deque.h
+    cocos/base/std/container/map.h
+    cocos/base/std/container/queue.h
+    cocos/base/std/container/set.h
+    cocos/base/std/container/string.h
+    cocos/base/std/container/unordered_map.h
+    cocos/base/std/container/unordered_set.h
+    cocos/base/std/container/vector.h
 )
 
 ############ application
@@ -339,7 +356,11 @@ cocos_source_files(
 )
 
 ############ main
-if(WINDOWS)
+if(USE_SERVER_MODE)
+    cocos_source_files(
+        cocos/main/EmptyMain.cpp
+    )
+elseif(WINDOWS)
     cocos_source_files(
         cocos/main/main-win32.cpp
     )
@@ -369,7 +390,12 @@ cocos_source_files(
     cocos/platform/UniversalPlatform.cpp
     cocos/platform/UniversalPlatform.h
 )
-if(WINDOWS)
+if(USE_SERVER_MODE)
+    cocos_source_files(
+        cocos/platform/empty/EmptyPlatform.cpp
+        cocos/platform/empty/EmptyPlatform.h
+    )
+elseif(WINDOWS)
     cocos_source_files(
         cocos/platform/win32/WindowsPlatform.cpp
         cocos/platform/win32/WindowsPlatform.h
@@ -450,7 +476,12 @@ cocos_source_files(
     cocos/platform/interfaces/modules/canvas/ICanvasRenderingContext2D.cpp
     cocos/platform/interfaces/modules/canvas/ICanvasRenderingContext2D.h
 )
-if(WINDOWS)
+if(USE_SERVER_MODE)
+    cocos_source_files(
+        cocos/platform/empty/modules/CanvasRenderingContext2DDelegate.cpp
+        cocos/platform/empty/modules/CanvasRenderingContext2DDelegate.h
+    )
+elseif(WINDOWS)
     cocos_source_files(
         cocos/platform/win32/modules/CanvasRenderingContext2DDelegate.cpp
         cocos/platform/win32/modules/CanvasRenderingContext2DDelegate.h
@@ -479,7 +510,24 @@ endif()
 
 ############ platform : Interface implementation of windows
 
-if(WINDOWS)
+if(USE_SERVER_MODE)
+    cocos_source_files(
+        cocos/platform/empty/modules/Accelerometer.cpp
+        cocos/platform/empty/modules/Accelerometer.h
+        cocos/platform/empty/modules/Battery.cpp
+        cocos/platform/empty/modules/Battery.h
+        cocos/platform/empty/modules/Screen.cpp
+        cocos/platform/empty/modules/Screen.h
+        cocos/platform/empty/modules/Network.cpp
+        cocos/platform/empty/modules/Network.h
+        cocos/platform/empty/modules/Vibrate.cpp
+        cocos/platform/empty/modules/Vibrate.h
+        cocos/platform/empty/modules/System.cpp
+        cocos/platform/empty/modules/System.h
+        cocos/platform/empty/modules/SystemWindow.cpp
+        cocos/platform/empty/modules/SystemWindow.h
+    )
+elseif(WINDOWS)
     cocos_source_files(
         cocos/platform/win32/modules/Accelerometer.cpp
         cocos/platform/win32/modules/Accelerometer.h
@@ -514,7 +562,9 @@ elseif(ANDROID OR OHOS)
         cocos/platform/java/modules/SystemWindow.h
     )
 endif()
-if(ANDROID)
+if (USE_SERVER_MODE)
+#nothing
+elseif(ANDROID)
     cocos_source_files(
         cocos/platform/android/modules/Screen.cpp
         cocos/platform/android/modules/Screen.h
@@ -612,13 +662,10 @@ cocos_source_files(MODULE ccunzip
 
 ##### memory
 cocos_source_files(
-                 cocos/base/memory/AllocatedObj.cpp
-                 cocos/base/memory/AllocatedObj.h
                  cocos/base/memory/MemDef.h
                  cocos/base/memory/Memory.cpp
                  cocos/base/memory/Memory.h
                  cocos/base/memory/StdAlloc.h
-                 cocos/base/memory/StlAlloc.h
                  cocos/base/memory/MemoryHook.cpp
                  cocos/base/memory/MemoryHook.h
                  cocos/base/memory/CallStack.cpp
@@ -1141,6 +1188,10 @@ cocos_source_files(
                  cocos/renderer/pipeline/GeometryRenderer.cpp
                  cocos/renderer/pipeline/helper/Utils.h
                  cocos/renderer/pipeline/helper/Utils.cpp
+                 cocos/renderer/pipeline/custom/FrameGraphDispatcher.cpp
+                 cocos/renderer/pipeline/custom/FGDispatcherGraphs.h
+                 cocos/renderer/pipeline/custom/FGDispatcherTypes.cpp
+                 cocos/renderer/pipeline/custom/FGDispatcherTypes.h
                  cocos/renderer/pipeline/custom/LayoutGraphFwd.h
                  cocos/renderer/pipeline/custom/LayoutGraphGraphs.h
                  cocos/renderer/pipeline/custom/LayoutGraphJsb.cpp
@@ -1182,15 +1233,6 @@ cocos_source_files(
                  cocos/renderer/pipeline/custom/RenderExampleReflection.h
                  cocos/renderer/pipeline/custom/RenderExampleTypes.cpp
                  cocos/renderer/pipeline/custom/RenderExampleTypes.h
-                 cocos/renderer/pipeline/custom/RenderExecutorFwd.h
-                 cocos/renderer/pipeline/custom/RenderExecutorGraphs.h
-                 cocos/renderer/pipeline/custom/RenderExecutorJsb.cpp
-                 cocos/renderer/pipeline/custom/RenderExecutorJsb.h
-                 cocos/renderer/pipeline/custom/RenderExecutorNames.h
-                 cocos/renderer/pipeline/custom/RenderExecutorReflection.cpp
-                 cocos/renderer/pipeline/custom/RenderExecutorReflection.h
-                 cocos/renderer/pipeline/custom/RenderExecutorTypes.cpp
-                 cocos/renderer/pipeline/custom/RenderExecutorTypes.h
                  cocos/renderer/pipeline/custom/RenderGraphFwd.h
                  cocos/renderer/pipeline/custom/RenderGraphGraphs.h
                  cocos/renderer/pipeline/custom/RenderGraphJsb.cpp
@@ -1284,6 +1326,15 @@ cocos_source_files(
     cocos/primitive/Torus.h
     cocos/primitive/Transform.cpp
     cocos/primitive/Transform.h
+)
+
+##### profiler
+cocos_source_files(
+    cocos/profiler/DebugRenderer.h
+    cocos/profiler/DebugRenderer.cpp
+    cocos/profiler/Profiler.h
+    cocos/profiler/Profiler.cpp
+    cocos/profiler/GameStats.h
 )
 
 ##### components
@@ -1793,6 +1844,12 @@ cocos_source_files(
     cocos/core/assets/TextureBase.h
     cocos/core/assets/TextureCube.cpp
     cocos/core/assets/TextureCube.h
+    cocos/core/assets/BitmapFont.h
+    cocos/core/assets/BitmapFont.cpp
+    cocos/core/assets/Font.h
+    cocos/core/assets/Font.cpp
+    cocos/core/assets/FreeTypeFont.h
+    cocos/core/assets/FreeTypeFont.cpp
 
     # builtin
     cocos/core/builtin/BuiltinResMgr.cpp
@@ -2502,8 +2559,6 @@ if(ANDROID OR IOS OR OHOS)
     endif()
     if(USE_WEBVIEW)
         cocos_source_files(
-                         cocos/ui/webview/WebViewImpl-java.h
-                         cocos/ui/webview/WebViewImpl-ios.h
                          cocos/ui/webview/WebView-inl.h
                          cocos/ui/webview/WebView.h
         )
@@ -2523,6 +2578,7 @@ if(ANDROID)
     endif()
     if(USE_WEBVIEW)
         cocos_source_files(
+                         cocos/ui/webview/WebViewImpl-java.h
                          cocos/ui/webview/WebViewImpl-android.cpp
         )
     endif()
@@ -2539,6 +2595,7 @@ elseif(OHOS)
     endif()
     if(USE_WEBVIEW)
         cocos_source_files(
+            cocos/ui/webview/WebViewImpl-java.h
             cocos/ui/webview/WebViewImpl-ohos.cpp
         )
     endif()
@@ -2561,7 +2618,9 @@ elseif(IOS)
     endif()
     if(USE_WEBVIEW)
        cocos_source_files(
+                         cocos/ui/webview/WebViewImpl-ios.h
             NO_WERROR   NO_UBUILD   cocos/ui/webview/WebViewImpl-ios.mm
+
        )
    endif()
 elseif(WIN32)
@@ -2804,19 +2863,19 @@ endif()
 ################################# cc_apply_definations ###################################
 function(cc_apply_definations target)
     target_compile_definitions(${target} PUBLIC
-        $<IF:$<BOOL:${USE_VIDEO}>,USE_VIDEO=1,USE_VIDEO=0>
-        $<IF:$<BOOL:${USE_WEBVIEW}>,USE_WEBVIEW=1,USE_WEBVIEW=0>
-        $<IF:$<BOOL:${USE_AUDIO}>,USE_AUDIO=1,USE_AUDIO=0>
-        $<IF:$<BOOL:${USE_SOCKET}>,USE_SOCKET=1,USE_SOCKET=0>
-        $<IF:$<BOOL:${USE_WEBSOCKET_SERVER}>,USE_WEBSOCKET_SERVER=1,USE_WEBSOCKET_SERVER=0>
+        $<IF:$<BOOL:${USE_VIDEO}>,CC_USE_VIDEO=1,CC_USE_VIDEO=0>
+        $<IF:$<BOOL:${USE_WEBVIEW}>,CC_USE_WEBVIEW=1,CC_USE_WEBVIEW=0>
+        $<IF:$<BOOL:${USE_AUDIO}>,CC_USE_AUDIO=1,CC_USE_AUDIO=0>
+        $<IF:$<BOOL:${USE_SOCKET}>,CC_USE_SOCKET=1,CC_USE_SOCKET=0>
+        $<IF:$<BOOL:${USE_WEBSOCKET_SERVER}>,CC_USE_WEBSOCKET_SERVER=1,CC_USE_WEBSOCKET_SERVER=0>
         $<IF:$<BOOL:${USE_EDIT_BOX}>,CC_USE_EDITBOX=1,CC_USE_EDITBOX=0>
         $<IF:$<BOOL:${USE_V8_DEBUGGER}>,USE_V8_DEBUGGER=1,USE_V8_DEBUGGER=0>
-        $<IF:$<BOOL:${USE_MIDDLEWARE}>,USE_MIDDLEWARE=1,USE_MIDDLEWARE=0>
-        $<IF:$<BOOL:${USE_SPINE}>,USE_SPINE=1,USE_SPINE=0>
-        $<IF:$<BOOL:${USE_DRAGONBONES}>,USE_DRAGONBONES=1,USE_DRAGONBONES=0>
-        $<IF:$<BOOL:${USE_JOB_SYSTEM_TBB}>,USE_JOB_SYSTEM_TBB=1,USE_JOB_SYSTEM_TBB=0>
-        $<IF:$<BOOL:${USE_JOB_SYSTEM_TASKFLOW}>,USE_JOB_SYSTEM_TASKFLOW=1,USE_JOB_SYSTEM_TASKFLOW=0>
-        $<IF:$<BOOL:${USE_PHYSICS_PHYSX}>,USE_PHYSICS_PHYSX=1,USE_PHYSICS_PHYSX=0>
+        $<IF:$<BOOL:${USE_MIDDLEWARE}>,CC_USE_MIDDLEWARE=1,CC_USE_MIDDLEWARE=0>
+        $<IF:$<BOOL:${USE_SPINE}>,CC_USE_SPINE=1,CC_USE_SPINE=0>
+        $<IF:$<BOOL:${USE_DRAGONBONES}>,CC_USE_DRAGONBONES=1,CC_USE_DRAGONBONES=0>
+        $<IF:$<BOOL:${USE_JOB_SYSTEM_TBB}>,CC_USE_JOB_SYSTEM_TBB=1,CC_USE_JOB_SYSTEM_TBB=0>
+        $<IF:$<BOOL:${USE_JOB_SYSTEM_TASKFLOW}>,CC_USE_JOB_SYSTEM_TASKFLOW=1,CC_USE_JOB_SYSTEM_TASKFLOW=0>
+        $<IF:$<BOOL:${USE_PHYSICS_PHYSX}>,CC_USE_PHYSICS_PHYSX=1,CC_USE_PHYSICS_PHYSX=0>
         $<IF:$<BOOL:${CC_EDITOR}>,CC_EDITOR=1,CC_EDITOR=0>
         $<$<BOOL:${USE_SE_JSC}>:SCRIPT_ENGINE_TYPE=3>
         $<$<BOOL:${USE_SE_SM}>:SCRIPT_ENGINE_TYPE=1>
@@ -2836,20 +2895,12 @@ if(USE_MODULES)
     cc_apply_definations(ccutils)
 endif()
 
+
 if(MSVC)
-    if(${CMAKE_SIZEOF_VOID_P} STREQUAL "4")
-        file(GLOB_RECURSE WIN32_DLLS
-            ${CWD}/external/win32/libs/*.dll
-            ${CWD}/external/win32/libs/Debug/*.dll
-            ${CWD}/external/win32/libs/glslang/*.dll
-        )
-    else()
-        file(GLOB_RECURSE WIN32_DLLS
-            ${CWD}/external/win64/libs/*.dll
-            ${CWD}/external/win64/libs/Debug/*.dll
-            ${CWD}/external/win64/libs/glslang/*.dll
-        )
-    endif()
+    file(GLOB WINDOWS_DLLS
+        ${CWD}/external/win64/libs/*.dll
+        ${CWD}/external/win64/libs/msvcr/*.dll
+    )
     target_compile_options(${ENGINE_NAME} PUBLIC /MP 
         /bigobj
         /wd4018 # signed/unsigned mismatch
@@ -2962,6 +3013,7 @@ if(ANDROID)
         ${LIB_EGL}
         ${LIB_GLESv2}
         GLESv2
+        jnigraphics
         ${CC_EXTERNAL_LIBS}
     )
 endif()
@@ -2971,6 +3023,7 @@ if(OHOS)
         EGL
         GLESv3
         zgraphic.z
+        image_pixelmap.z
         rawfile.z
         z
         OpenSLES
@@ -3049,8 +3102,12 @@ if(QNX)
         ${CC_EXTERNAL_LIBS}
     )
 elseif(LINUX)
+    set(LINUX_GRAPHIC_LIBS "")
+    if(NOT USE_SERVER_MODE)
+        list(APPEND LINUX_GRAPHIC_LIBS X11)
+    endif()
     target_link_libraries(${ENGINE_NAME} PUBLIC
-        X11
+        ${LINUX_GRAPHIC_LIBS}
         ${CC_EXTERNAL_LIBS}
     )
 endif()

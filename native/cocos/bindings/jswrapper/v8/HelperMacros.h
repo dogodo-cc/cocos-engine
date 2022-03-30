@@ -29,14 +29,13 @@
 #include <algorithm>
 #include <chrono>
 #include <map>
-#include <string>
 #include <tuple>
 #include <type_traits>
 #include <typeinfo>
-#include <vector>
 #include "../ValueArrayPool.h"
 #include "../config.h"
 #include "base/Log.h"
+#include "base/std/container/string.h"
 
 //#define RECORD_JSB_INVOKING
 

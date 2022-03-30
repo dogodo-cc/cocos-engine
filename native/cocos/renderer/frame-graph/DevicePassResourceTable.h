@@ -25,10 +25,10 @@
 
 #pragma once
 
-#include <unordered_map>
 #include "Handle.h"
 #include "RenderTargetAttachment.h"
 #include "Resource.h"
+#include "base/std/container/unordered_map.h"
 
 namespace cc {
 namespace framegraph {
@@ -58,11 +58,11 @@ public:
     uint32_t         getSubpassIndex() const { return _subpassIndex; }
 
 private:
-    using ResourceDictionary = std::unordered_map<Handle, gfx::GFXObject *, Handle::Hasher>;
+    using ResourceDictionary = ccstd::unordered_map<Handle, gfx::GFXObject *, Handle::Hasher>;
 
     static gfx::GFXObject *get(const ResourceDictionary &from, Handle handle) noexcept;
-    void                   extract(const FrameGraph &graph, const PassNode *passNode, std::vector<const gfx::Texture *> const &renderTargets) noexcept;
-    static void            extract(const FrameGraph &graph, std::vector<Handle> const &from, ResourceDictionary &to, bool ignoreRenderTarget, std::vector<const gfx::Texture *> const &renderTargets) noexcept;
+    void                   extract(const FrameGraph &graph, const PassNode *passNode, ccstd::vector<const gfx::Texture *> const &renderTargets) noexcept;
+    static void            extract(const FrameGraph &graph, ccstd::vector<Handle> const &from, ResourceDictionary &to, bool ignoreRenderTarget, ccstd::vector<const gfx::Texture *> const &renderTargets) noexcept;
 
     ResourceDictionary _reads{};
     ResourceDictionary _writes{};

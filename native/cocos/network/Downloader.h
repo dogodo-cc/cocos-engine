@@ -28,12 +28,11 @@
 #pragma once
 
 #include <functional>
-#include <map>
 #include <memory>
-#include <string>
-#include <vector>
-
 #include "base/Macros.h"
+#include "base/std/container/unordered_map.h"
+#include "base/std/container/string.h"
+#include "base/std/container/vector.h"
 
 namespace cc {
 namespace network {
@@ -50,10 +49,10 @@ public:
     const static int ERROR_IMPL_INTERNAL  = -3;
     const static int ERROR_ABORT          = -4;
 
-    std::string                        identifier;
-    std::string                        requestURL;
-    std::string                        storagePath;
-    std::map<std::string, std::string> header;
+    ccstd::string                            identifier;
+    ccstd::string                            requestURL;
+    ccstd::string                            storagePath;
+    ccstd::unordered_map<ccstd::string, ccstd::string> header;
 
     DownloadTask();
     virtual ~DownloadTask();
@@ -64,19 +63,19 @@ private:
 };
 
 struct CC_DLL DownloaderHints {
-    uint32_t    countOfMaxProcessingTasks;
-    uint32_t    timeoutInSeconds;
-    std::string tempFileNameSuffix;
+    uint32_t      countOfMaxProcessingTasks;
+    uint32_t      timeoutInSeconds;
+    ccstd::string tempFileNameSuffix;
 };
 
 class CC_DLL Downloader final {
 public:
     Downloader();
-    Downloader(const DownloaderHints &hints);
+    explicit Downloader(const DownloaderHints &hints);
     ~Downloader();
 
-    std::function<void(const DownloadTask &              task,
-                       const std::vector<unsigned char> &data)>
+    std::function<void(const DownloadTask &                task,
+                       const ccstd::vector<unsigned char> &data)>
         onDataTaskSuccess;
 
     std::function<void(const DownloadTask &task)> onFileTaskSuccess;
@@ -87,10 +86,10 @@ public:
                        int64_t             totalBytesExpected)>
         onTaskProgress;
 
-    std::function<void(const DownloadTask &task,
-                       int                 errorCode,
-                       int                 errorCodeInternal,
-                       const std::string & errorStr)>
+    std::function<void(const DownloadTask & task,
+                       int                  errorCode,
+                       int                  errorCodeInternal,
+                       const ccstd::string &errorStr)>
         onTaskError;
 
     void setOnFileTaskSuccess(const std::function<void(const DownloadTask &task)> &callback) { onFileTaskSuccess = callback; };
@@ -100,16 +99,16 @@ public:
                                                     int64_t             totalBytesReceived,
                                                     int64_t             totalBytesExpected)> &callback) { onTaskProgress = callback; };
 
-    void setOnTaskError(const std::function<void(const DownloadTask &task,
-                                                 int                 errorCode,
-                                                 int                 errorCodeInternal,
-                                                 const std::string & errorStr)> &callback) { onTaskError = callback; };
+    void setOnTaskError(const std::function<void(const DownloadTask & task,
+                                                 int                  errorCode,
+                                                 int                  errorCodeInternal,
+                                                 const ccstd::string &errorStr)> &callback) { onTaskError = callback; };
 
-    std::shared_ptr<const DownloadTask> createDownloadDataTask(const std::string &srcUrl, const std::string &identifier = "");
+    std::shared_ptr<const DownloadTask> createDownloadDataTask(const ccstd::string &srcUrl, const ccstd::string &identifier = "");
 
-    std::shared_ptr<const DownloadTask> createDownloadFileTask(const std::string &srcUrl, const std::string &storagePath, const std::string &identifier = "");
+    std::shared_ptr<const DownloadTask> createDownloadFileTask(const ccstd::string &srcUrl, const ccstd::string &storagePath, const ccstd::string &identifier = "");
 
-    std::shared_ptr<const DownloadTask> createDownloadFileTask(const std::string &srcUrl, const std::string &storagePath, const std::map<std::string, std::string> &header, const std::string &identifier = "");
+    std::shared_ptr<const DownloadTask> createDownloadFileTask(const ccstd::string &srcUrl, const ccstd::string &storagePath, const ccstd::unordered_map<ccstd::string, ccstd::string> &header, const ccstd::string &identifier = "");
 
     void abort(const DownloadTask &task);
 

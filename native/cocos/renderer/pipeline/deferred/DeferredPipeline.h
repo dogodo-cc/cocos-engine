@@ -27,7 +27,7 @@
 
 #include <array>
 
-#include <unordered_map>
+#include "base/std/container/unordered_map.h"
 #include "pipeline/Enum.h"
 #include "pipeline/RenderPipeline.h"
 
@@ -47,7 +47,8 @@ public:
     bool initialize(const RenderPipelineInfo &info) override;
     bool destroy() override;
     bool activate(gfx::Swapchain *swapchain) override;
-    void render(const vector<scene::Camera *> &cameras) override;
+    void render(const ccstd::vector<scene::Camera *> &cameras) override;
+    void onGlobalPipelineStateChanged() override;
 
     inline gfx::Buffer *          getLightsUBO() const { return _lightsUBO; }
     inline const LightList &      getValidLights() const { return _validLights; }

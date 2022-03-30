@@ -42,6 +42,7 @@
 #include "frame-graph/Handle.h"
 #include "gfx-base/GFXDevice.h"
 #include "pipeline/Define.h"
+#include "profiler/Profiler.h"
 #include "scene/RenderScene.h"
 #include "scene/SphereLight.h"
 #include "scene/SpotLight.h"
@@ -50,7 +51,7 @@ namespace cc {
 namespace pipeline {
 namespace {
 
-const String             STAGE_NAME         = "LightingStage";
+const ccstd::string      STAGE_NAME         = "LightingStage";
 const uint               MAX_REFLECTOR_SIZE = 5;
 framegraph::StringHandle reflectTexHandle   = framegraph::FrameGraph::stringToHandle("reflectionTex");
 framegraph::StringHandle denoiseTexHandle[MAX_REFLECTOR_SIZE];
@@ -64,21 +65,21 @@ framegraph::StringHandle fgStrHandleClusterLightIndexBuffer = framegraph::FrameG
 framegraph::StringHandle fgStrHandleClusterLightGridBuffer  = framegraph::FrameGraph::stringToHandle("lightGridBuffer");
 
 void initStrHandle() {
-    std::string tmp;
+    ccstd::string tmp;
     for (int i = 0; i < MAX_REFLECTOR_SIZE; ++i) {
-        tmp                 = std::string("denoiseTexureHandle") + std::to_string(i);
+        tmp                 = ccstd::string("denoiseTexureHandle") + std::to_string(i);
         denoiseTexHandle[i] = framegraph::FrameGraph::stringToHandle(tmp.c_str());
 
-        tmp              = std::string("ssprClearPss") + std::to_string(i);
+        tmp              = ccstd::string("ssprClearPss") + std::to_string(i);
         ssprClearPass[i] = framegraph::FrameGraph::stringToHandle(tmp.c_str());
 
-        tmp                    = std::string("ssprReflectPass") + std::to_string(i);
+        tmp                    = ccstd::string("ssprReflectPass") + std::to_string(i);
         ssprCompReflectPass[i] = framegraph::FrameGraph::stringToHandle(tmp.c_str());
 
-        tmp                    = std::string("ssprDenoisePass") + std::to_string(i);
+        tmp                    = ccstd::string("ssprDenoisePass") + std::to_string(i);
         ssprCompDenoisePass[i] = framegraph::FrameGraph::stringToHandle(tmp.c_str());
 
-        tmp               = std::string("ssprRenderPass") + std::to_string(i);
+        tmp               = ccstd::string("ssprRenderPass") + std::to_string(i);
         ssprRenderPass[i] = framegraph::FrameGraph::stringToHandle(tmp.c_str());
     }
 }
@@ -389,7 +390,7 @@ void LightingStage::fgLightingPass(scene::Camera *camera) {
 
         // no need to bind localSet in cluster
         if (!_pipeline->isClusterEnabled()) {
-            vector<uint> dynamicOffsets = {0};
+            ccstd::vector<uint> dynamicOffsets = {0};
             cmdBuff->bindDescriptorSet(localSet, _descriptorSet, dynamicOffsets);
         }
 
@@ -499,7 +500,7 @@ void LightingStage::fgTransparent(scene::Camera *camera) {
 
         // no need to bind localSet in cluster
         if (!_pipeline->isClusterEnabled()) {
-            vector<uint> dynamicOffsets = {0};
+            ccstd::vector<uint> dynamicOffsets = {0};
             cmdBuff->bindDescriptorSet(localSet, _descriptorSet, dynamicOffsets);
         }
 
@@ -513,7 +514,7 @@ void LightingStage::fgTransparent(scene::Camera *camera) {
         }
 
         _planarShadowQueue->recordCommandBuffer(_device, table.getRenderPass(), cmdBuff);
-        _pipeline->getGeometryRenderer()->render(table.getRenderPass(), cmdBuff);
+        camera->getGeometryRenderer()->render(table.getRenderPass(), cmdBuff, pipeline->getPipelineSceneData());
     };
 
     if (!_isTransparentQueueEmpty) {
@@ -854,6 +855,7 @@ void LightingStage::fgSsprPass(scene::Camera *camera) {
 }
 
 void LightingStage::render(scene::Camera *camera) {
+    CC_PROFILE(LightingStageRender);
     auto *pipeline = static_cast<DeferredPipeline *>(_pipeline);
     pipeline->getPipelineUBO()->updateShadowUBO(camera);
     putTransparentObj2Queue();

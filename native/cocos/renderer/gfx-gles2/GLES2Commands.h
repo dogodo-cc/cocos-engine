@@ -52,11 +52,11 @@ public:
 
 class GLES2CmdBindStates final : public GLESCmd {
 public:
-    GLES2GPUPipelineState *         gpuPipelineState  = nullptr;
-    GLES2GPUInputAssembler *        gpuInputAssembler = nullptr;
-    vector<GLES2GPUDescriptorSet *> gpuDescriptorSets;
-    vector<uint32_t>                dynamicOffsets;
-    DynamicStates                   dynamicStates;
+    GLES2GPUPipelineState *                gpuPipelineState  = nullptr;
+    GLES2GPUInputAssembler *               gpuInputAssembler = nullptr;
+    ccstd::vector<GLES2GPUDescriptorSet *> gpuDescriptorSets;
+    ccstd::vector<uint32_t>                dynamicOffsets;
+    DynamicStates                          dynamicStates;
 
     GLES2CmdBindStates() : GLESCmd(GLESCmdType::BIND_STATES) {}
 
@@ -96,7 +96,7 @@ public:
     GLES2GPUTexture *        gpuTexture = nullptr;
     const BufferTextureCopy *regions    = nullptr;
     uint32_t                 count      = 0U;
-    const uint8_t *const *   buffers;
+    const uint8_t *const *   buffers    = nullptr;
 
     GLES2CmdCopyBufferToTexture() : GLESCmd(GLESCmdType::COPY_BUFFER_TO_TEXTURE) {}
 
@@ -126,8 +126,7 @@ public:
     }
 };
 
-class GLES2CmdPackage final : public Object {
-public:
+struct GLES2CmdPackage {
     CachedArray<GLESCmdType>                   cmds;
     CachedArray<GLES2CmdBeginRenderPass *>     beginRenderPassCmds;
     CachedArray<GLES2CmdBindStates *>          bindStatesCmds;
@@ -137,7 +136,7 @@ public:
     CachedArray<GLES2CmdBlitTexture *>         blitTextureCmds;
 };
 
-class GLES2GPUCommandAllocator final : public Object {
+class GLES2GPUCommandAllocator final {
 public:
     CommandPool<GLES2CmdBeginRenderPass>     beginRenderPassCmdPool;
     CommandPool<GLES2CmdBindStates>          bindStatesCmdPool;

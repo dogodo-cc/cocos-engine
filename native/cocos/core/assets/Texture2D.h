@@ -34,8 +34,8 @@
 namespace cc {
 
 struct ITexture2DSerializeData {
-    std::string              base;
-    std::vector<std::string> mipmaps;
+    ccstd::string                base;
+    ccstd::vector<ccstd::string> mipmaps;
 };
 
 /**
@@ -87,18 +87,18 @@ public:
      * @zh 所有层级 Mipmap，注意，这里不包含自动生成的 Mipmap。
      * 当设置 Mipmap 时，贴图的尺寸以及像素格式可能会改变。
      */
-    const std::vector<IntrusivePtr<ImageAsset>> &getMipmaps() const {
+    const ccstd::vector<IntrusivePtr<ImageAsset>> &getMipmaps() const {
         return _mipmaps;
     }
 
-    const std::vector<std::string> &getMipmapsUuids() const { // TODO(xwx): temporary use _mipmaps as string array
+    const ccstd::vector<ccstd::string> &getMipmapsUuids() const { // TODO(xwx): temporary use _mipmaps as string array
         return _mipmapsUuids;
     }
 
     //cjh TODO: TextureCube also needs this method.
-    void syncMipmapsForJS(const std::vector<IntrusivePtr<ImageAsset>> &value);
+    void syncMipmapsForJS(const ccstd::vector<IntrusivePtr<ImageAsset>> &value);
 
-    void setMipmaps(const std::vector<IntrusivePtr<ImageAsset>> &value);
+    void setMipmaps(const ccstd::vector<IntrusivePtr<ImageAsset>> &value);
 
     /**
      * @en Level 0 mipmap image.
@@ -140,7 +140,7 @@ public:
      */
     void create(uint32_t width, uint32_t height, PixelFormat format = PixelFormat::RGBA8888, uint32_t mipmapLevel = 1);
 
-    std::string toString() const override;
+    ccstd::string toString() const override;
 
     void updateMipmaps(uint32_t firstLevel, uint32_t count) override;
 
@@ -163,7 +163,7 @@ public:
      * @zh 返回此贴图的描述。
      * @returns The description
      */
-    std::string description() const;
+    ccstd::string description() const;
 
     /**
      * @en Release used GPU resources.
@@ -187,14 +187,14 @@ public:
 
     gfx::TextureInfo getGfxTextureCreateInfo(gfx::TextureUsageBit usage, gfx::Format format, uint32_t levelCount, gfx::TextureFlagBit flags) override;
 
-    void initDefault(const cc::optional<std::string> &uuid) override;
+    void initDefault(const cc::optional<ccstd::string> &uuid) override;
 
     bool validate() const override;
 
 private:
-    std::vector<IntrusivePtr<ImageAsset>> _mipmaps;
+    ccstd::vector<IntrusivePtr<ImageAsset>> _mipmaps;
 
-    std::vector<std::string> _mipmapsUuids; // TODO(xwx): temporary use _mipmaps as UUIDs string array
+    ccstd::vector<ccstd::string> _mipmapsUuids; // TODO(xwx): temporary use _mipmaps as UUIDs string array
 
     friend class Texture2DDeserializer;
 
