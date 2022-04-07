@@ -23,17 +23,16 @@
  THE SOFTWARE.
 ****************************************************************************/
 
-#import "MTLStd.h"
-
 #import "MTLDevice.h"
 #import "MTLGPUObjects.h"
 #import "MTLTexture.h"
 #import "MTLUtils.h"
 #import "MTLSwapchain.h"
+#import "profiler/Profiler.h"
+#include "base/Log.h"
 #import <CoreVideo/CVPixelBuffer.h>
 #import <CoreVideo/CVMetalTexture.h>
 #import <CoreVideo/CVMetalTextureCache.h>
-#import "profiler/Profiler.h"
 
 // deferred testcase 'camera'
 #define MEMLESS_ON 0
@@ -122,10 +121,11 @@ void CCMTLTexture::doInit(const TextureViewInfo &info) {
     }
     _convertedFormat = mu::convertGFXPixelFormat(_viewInfo.format);
     auto mtlTextureType = mu::toMTLTextureType(_viewInfo.type);
-    _mtlTextureView = [id<MTLTexture>(_viewInfo.texture) newTextureViewWithPixelFormat:mu::toMTLPixelFormat(_convertedFormat)
-                                                                                         textureType:mtlTextureType
-                                                                                              levels:NSMakeRange(_viewInfo.baseLevel, _viewInfo.levelCount)
-                                                                                              slices:NSMakeRange(_viewInfo.baseLayer, _viewInfo.layerCount)];
+    _mtlTextureView = [static_cast<CCMTLTexture*>(_viewInfo.texture)->_mtlTexture
+                       newTextureViewWithPixelFormat:mu::toMTLPixelFormat(_convertedFormat)
+                       textureType:mtlTextureType
+                       levels:NSMakeRange(_viewInfo.baseLevel, _viewInfo.levelCount)
+                       slices:NSMakeRange(_viewInfo.baseLayer, _viewInfo.layerCount)];
 }
 
 void CCMTLTexture::doInit(const SwapchainTextureInfo &info) {

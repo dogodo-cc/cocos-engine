@@ -35,7 +35,7 @@
 namespace cc {
 namespace pipeline {
 ccstd::unordered_map<scene::Pass *, ccstd::unordered_map<uint, BatchedBuffer *>> BatchedBuffer::buffers;
-BatchedBuffer *                                              BatchedBuffer::get(scene::Pass *pass) {
+BatchedBuffer *                                                                  BatchedBuffer::get(scene::Pass *pass) {
     return BatchedBuffer::get(pass, 0);
 }
 BatchedBuffer *BatchedBuffer::get(scene::Pass *pass, uint extraKey) {
@@ -229,8 +229,8 @@ void BatchedBuffer::merge(const scene::SubModel *subModel, uint passIdx, const s
     descriptorSet->bindBuffer(UBOLocalBatched::BINDING, ubo);
     descriptorSet->update();
 
-    std::array<float, UBOLocalBatched::COUNT> uboData;
-    const auto &                              worldMatrix = model->getTransform()->getWorldMatrix();
+    ccstd::array<float, UBOLocalBatched::COUNT> uboData;
+    const auto &                                worldMatrix = model->getTransform()->getWorldMatrix();
     memcpy(uboData.data() + UBOLocalBatched::MAT_WORLDS_OFFSET, worldMatrix.m, sizeof(worldMatrix));
     BatchedItem item = {
         std::move(vbs),                  //vbs

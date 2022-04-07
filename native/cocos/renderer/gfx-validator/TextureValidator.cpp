@@ -23,11 +23,9 @@
  THE SOFTWARE.
 ****************************************************************************/
 
-#include "base/CoreStd.h"
-
+#include "TextureValidator.h"
 #include "DeviceValidator.h"
 #include "SwapchainValidator.h"
-#include "TextureValidator.h"
 #include "ValidationUtils.h"
 #include "gfx-base/GFXDef-common.h"
 
@@ -71,6 +69,9 @@ void TextureValidator::doInit(const TextureInfo &info) {
 
     if (hasFlag(info.flags, TextureFlagBit::GEN_MIPMAP)) {
         CCASSERT(info.levelCount > 1, "Generating mipmaps with level count 1?");
+
+        bool isCompressed = GFX_FORMAT_INFOS[static_cast<int>(info.format)].isCompressed;
+        CCASSERT(!isCompressed, "Generating mipmaps for compressed image?");
     }
 
     /////////// execute ///////////
