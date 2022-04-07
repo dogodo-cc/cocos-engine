@@ -80,7 +80,7 @@
     "__prefab": {
       "__id__": 3
     },
-    "_luminanceLDR": null
+    "_luminanceLDR": 0
   },
   {
     "__type__": "cc.CompPrefabInfo",
