@@ -37,6 +37,6 @@
     "type": "texture",
     "redirect": "c78f78a5-3553-4d1f-ad3b-177fe55af68b@6c48a",
     "hasAlpha": true,
-    "fixAlphaTransparencyArtifacts": true
+    "fixAlphaTransparencyArtifacts": false
   }
 }

@@ -38,6 +38,6 @@
     "redirect": "55052bc6-9909-43c1-b2fc-8818060fb069@6c48a",
     "flipVertical": true,
     "hasAlpha": true,
-    "fixAlphaTransparencyArtifacts": true
+    "fixAlphaTransparencyArtifacts": false
   }
 }

@@ -443,40 +443,6 @@ bool native_ptr_to_seval(T *vp, se::Class *cls, se::Value *ret, bool *isReturnCa
 }
 
 template <typename T>
-bool native_ptr_to_rooted_seval( // NOLINT(readability-identifier-naming)
-    typename std::enable_if<!std::is_base_of<cc::RefCounted, T>::value, T>::type *v,
-    se::Class *cls, se::Value *ret, bool *isReturnCachedValue = nullptr) {
-    assert(ret != nullptr);
-    if (v == nullptr) {
-        ret->setNull();
-        return true;
-    }
-
-    se::Object *obj  = nullptr;
-    auto        iter = se::NativePtrToObjectMap::find(v);
-    if (iter == se::NativePtrToObjectMap::end()) { // If we couldn't find native object in map, then the native object is created from native code. e.g. TMXLayer::getTileAt
-        assert(cls != nullptr);
-        obj = se::Object::createObjectWithClass(cls);
-        obj->root();
-        obj->setPrivateObject(se::rawref_private_object(v));
-        if (isReturnCachedValue != nullptr) {
-            *isReturnCachedValue = false;
-        }
-        // CC_LOG_DEBUGWARN("WARNING: non-Ref type: (%s) isn't catched, se::Object:%p, native: %p", typeid(*v).name(), obj, v);
-    } else {
-        obj = iter->second;
-        assert(obj->isRooted());
-        if (isReturnCachedValue != nullptr) {
-            *isReturnCachedValue = true;
-        }
-        // CC_LOG_DEBUG("return cached object: %s, se::Object:%p, native: %p", typeid(*v).name(), obj, v);
-    }
-
-    ret->setObject(obj);
-    return true;
-}
-
-template <typename T>
 bool native_ptr_to_seval(T *vp, se::Value *ret, bool *isReturnCachedValue = nullptr) { // NOLINT(readability-identifier-naming)
     using DecayT = typename std::decay<typename std::remove_const<T>::type>::type;
     auto *v      = const_cast<DecayT *>(vp);
@@ -935,7 +901,7 @@ inline bool sevalue_to_native(const se::Value &from, HolderType<T, is_reference>
             return true;
         }
         if CC_CONSTEXPR (std::is_constructible<T>::value) {
-            holder->ptr = new (&holder->inlineObject) T;
+            holder->ptr = ccnew_placement (&holder->inlineObject) T;
         } else {
             assert(false); // default construtor not provided
         }
@@ -962,8 +928,8 @@ inline typename std::enable_if<is_jsb_object_v<T>, bool>::type sevalue_to_native
         holder->data = static_cast<T *>(ptr);
         return true;
     } else {
-        // holder->ptr = new T;
-        holder->ptr = new (&holder->inlineObject) T;
+        // holder->ptr = ccnew T;
+        holder->ptr = ccnew_placement (&holder->inlineObject) T;
         return sevalue_to_native(from, holder->ptr, ctx);
     }
 }
@@ -1053,7 +1019,7 @@ bool sevalue_to_native(const se::Value &from, std::shared_ptr<T> *out, se::Objec
 template <typename T>
 inline typename std::enable_if<std::is_arithmetic<T>::value, bool>::type
 sevalue_to_native(const se::Value &from, cc::IntrusivePtr<cc::TypedArrayTemp<T>> *out, se::Object *ctx) { // NOLINT(readability-identifier-naming)
-    *out = new cc::TypedArrayTemp<T>();
+    *out = ccnew cc::TypedArrayTemp<T>();
     sevalue_to_native(from, out->get(), ctx);
     return true;
 }
@@ -1257,7 +1223,18 @@ inline bool nativevalue_to_se(const ccstd::vector<T> &from, se::Value &to, se::O
     se::HandleObject array(se::Object::createArrayObject(from.size()));
     se::Value        tmp;
     for (size_t i = 0; i < from.size(); i++) {
-        nativevalue_to_se(from[i], tmp, ctx);
+        // If from[i] is on stack, then should create a new object, or
+        // JS will hold a freed object.
+        if CC_CONSTEXPR (!std::is_pointer<T>::value && is_jsb_object_v<T>) {
+            auto *pFrom = ccnew T(from[i]);
+            nativevalue_to_se(pFrom, tmp, ctx);
+            tmp.toObject()->clearPrivateData();
+            tmp.toObject()->setPrivateData(pFrom);
+        }
+        else {
+            nativevalue_to_se(from[i], tmp, ctx);
+        }
+        
         array->setArrayElement(static_cast<uint32_t>(i), tmp);
     }
     to.setObject(array, true);
@@ -1393,7 +1370,7 @@ bool nativevalue_to_se(const spine::Vector<T *> &v, se::Value &ret, se::Object *
     auto size = static_cast<uint32_t>(tmpv.size());
     for (uint32_t i = 0; i < size; ++i) {
         se::Value tmp;
-        ok = native_ptr_to_rooted_seval<T>(tmpv[i], &tmp);
+        ok = native_ptr_to_seval<T>(tmpv[i], &tmp);
         if (!ok || !obj->setArrayElement(i, tmp)) {
             ok = false;
             ret.setUndefined();
