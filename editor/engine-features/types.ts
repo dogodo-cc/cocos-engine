@@ -96,8 +96,8 @@ export interface BaseItem {
     required?: boolean;
 
     /**
-     * @zh 当选择了某个模块时，标记可以勾选的一些开关
-     * @en 当选择了某个模块时，标记可以勾选的一些开关 en
+     * @zh 当选择了某个模块时，可以做些附加的配置
+     * @en When a module is selected, additional configurations can be made
      */
     flags: {[k: string]: Pick<BaseItem, 'default' | 'label' | 'description' > & {'ui-type': 'checkbox' | 'select'}}
 }
