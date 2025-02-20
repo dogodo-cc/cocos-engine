@@ -66,6 +66,12 @@ export interface BaseItem {
     isNativeModule?: boolean;
 
     /**
+     * @zh 该模块是否在编辑器预览模式下禁用，如果设为 `true`，则在编辑器预览模式下不能选择该模块。
+     * @en Whether the module is disabled in the editor preview mode. If set to true, the module cannot be selected in the editor preview mode.
+     */
+    disableInPreview?: boolean;
+
+    /**
      * @zh 是否在项目设置上隐藏该模块，设为 `true` 后将不会显示在项目设置中。
      * @en Whether to hide the module in the project settings. If set to true, it will not be displayed in the project settings.
      */

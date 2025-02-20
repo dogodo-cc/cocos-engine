@@ -32,6 +32,9 @@
                 "isNativeModule": {
                     "type": "boolean"
                 },
+                "disableInPreview": {
+                    "type": "boolean"
+                },
                 "label": {
                     "type": "string"
                 },
